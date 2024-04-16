@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link
+      rel="stylesheet"
+      as="style"
+      crossorigin
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+    <link rel="stylesheet" href="/static/reset.css" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <link
+      rel="stylesheet"
+      href="//cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css"
+    />
+  </head>
+  <body>
+    <div id="header" class="header">
+      <p class="title">STOCK API TEST</p>
+    </div>
+    <div id="main-content">
+      <div id="result"></div>
+    </div>
+    <div id="bottom">
+      <form action="" onsubmit="sendMessage(event)">
+        <input
+          type="text"
+          class="send-input"
+          id="messageText"
+          autocomplete="off"
+        />
+      </form>
+      <i class="xi-send" onclick="sendMessage(event)"></i>
+    </div>
+    <script>
+      let isLoading = false;
+
+      function sendMessage(event) {
+        event.preventDefault();
+
+        const input = messageText.value;
+        messageText.value = "";
+
+        const ws = new WebSocket("ws://localhost:8000/gpt");
+        ws.onopen = function () {
+          console.log("WEBSOCKET OPEN!");
+          ws.send(input);
+        };
+
+        ws.onmessage = function (event) {
+          const result = document.getElementById("result");
+          result.innerText = result.innerText + event.data;
+        };
+
+        ws.onclose = function () {
+          console.log("WEBSOCKET CLOSE!");
+          ws.close();
+        };
+      }
+    </script>
+  </body>
+</html>
