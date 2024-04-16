@@ -1,0 +1,60 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Pretendard Variable", Pretendard, Roboto, "Noto Sans KR", "Segoe UI",
+    "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    sans-serif;
+  box-sizing: border-box;
+}
+
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 50px;
+  color: white;
+  background-color: #25253a;
+}
+
+#header > .title {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+#main-content {
+  height: calc(100vh - 120px);
+  background-color: #15151e;
+  color: white;
+}
+
+#bottom {
+  height: 70px;
+  background-color: #25253a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  gap: 1rem;
+}
+
+#bottom > *:nth-child(1) {
+  flex-grow: 1;
+}
+
+#bottom > *:nth-child(2) {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.send-input {
+  width: 100%;
+  background-color: rgb(255, 255, 255);
+  color: black;
+  font-size: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+}
