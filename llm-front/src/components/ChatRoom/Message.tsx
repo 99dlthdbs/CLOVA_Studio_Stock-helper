@@ -1,4 +1,6 @@
 import styled from "@emotion/styled";
+import Lottie from "react-lottie";
+import loadingData from "@/assets/loading-animation.json";
 
 interface MessageProps {
   role: string;
@@ -6,13 +8,35 @@ interface MessageProps {
 }
 
 const Message = ({ role, content }: MessageProps) => {
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: loadingData,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
+
   return (
     <MessageContainer>
       <RoleContainer>
         <RoleText>{role === "user" ? "You" : "Stockelper"}</RoleText>
       </RoleContainer>
       <ContentContainer>
-        <ContentText>{content}</ContentText>
+        <ContentText>
+          {content ? (
+            content
+          ) : (
+            <IconConatainer>
+              <Lottie
+                options={defaultOptions}
+                width={"1.75rem"}
+                height={"1.75rem"}
+                speed={1.25}
+              />
+            </IconConatainer>
+          )}
+        </ContentText>
       </ContentContainer>
     </MessageContainer>
   );
@@ -36,6 +60,11 @@ const RoleText = styled.p`
 
 const ContentContainer = styled.div``;
 
-const ContentText = styled.p`
+const IconConatainer = styled.div`
+  width: fit-content;
+  height: fit-content;
+`;
+
+const ContentText = styled.div`
   line-height: 1.8rem;
 `;

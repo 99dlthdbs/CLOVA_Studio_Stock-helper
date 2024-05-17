@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import Message from "@/components/ChatRoom/Message";
 import ChatInput from "@/components/ChatRoom/ChatInput";
-import { Fragment, useEffect, useMemo } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef } from "react";
 import { getChatting } from "@/apis/getChatting";
 import { useLocation } from "react-router-dom";
 import { ChattingTypes } from "@/types/ChattingTypes";
@@ -10,6 +10,7 @@ import { chattingListAtoms } from "@/atom/chattingAtoms";
 
 const Chat = () => {
   const { pathname } = useLocation();
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const [chattingList, setChattingList] =
     useAtom<ChattingTypes[]>(chattingListAtoms);
 
@@ -20,23 +21,30 @@ const Chat = () => {
     return id;
   }, [pathname]);
 
+  const scrollToBottomHandler = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [chattingList]);
+
   useEffect(() => {
     if (roomId) {
       getChatting(roomId).then((e) => {
         setChattingList(e);
-        console.log("resoonse ", e);
       });
     } else {
       setChattingList([]);
     }
-
-    console.log("DEBUG", pathname);
   }, [pathname]);
+
+  useEffect(() => {
+    scrollToBottomHandler();
+  }, [chattingList]);
 
   return (
     <ChatContainer>
       <ChatWrapper>
-        <MessageListContainer>
+        <MessageListContainer ref={scrollRef}>
           {chattingList.length !== 0 ? (
             chattingList.map((e) => {
               return (

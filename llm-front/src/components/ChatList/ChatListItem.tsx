@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import MoreIcon from "@/assets/menu-dots-vertical.svg?react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { deleteRoom } from "@/apis/deleteRoom";
 import TrashIcon from "@/assets/trash.svg?react";
@@ -13,6 +13,7 @@ interface ChatListItemProps {
 const ChatListItem = ({ title, itemId }: ChatListItemProps) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const [isMenuActive, setIsMenuActive] = useState<boolean>(false);
 
   const roomId = useMemo(() => {
@@ -37,8 +38,25 @@ const ChatListItem = ({ title, itemId }: ChatListItemProps) => {
     }
   }, [pathname]);
 
+  const onCloseModeHandler = useCallback((event: MouseEvent) => {
+    const { target } = event;
+    if (
+      !(menuRef && menuRef.current && menuRef.current.contains(target as Node))
+    ) {
+      setIsMenuActive(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener("mousedown", onCloseModeHandler);
+
+    return () => {
+      window.removeEventListener("mousedown", onCloseModeHandler);
+    };
+  });
+
   return (
-    <ChatListItemContainer isSelected={isSelected}>
+    <ChatListItemContainer isSelected={isSelected} ref={menuRef}>
       <Title>{title}</Title>
       <OverlayBox isSelected={isSelected} />
       {isSelected && (
@@ -49,12 +67,16 @@ const ChatListItem = ({ title, itemId }: ChatListItemProps) => {
             }}
             // onClick={onClickMoreHandler}
           >
-            <MoreIcon width={"1.25rem"} height={"1.25rem"} />
+            <MoreIcon
+              width={"1.25rem"}
+              height={"1.25rem"}
+              color={"var(--theme-color-3)"}
+            />
           </MoreContainer>
           {isMenuActive && (
             <MenuContainer onClick={onClickMoreHandler}>
-              <TrashIcon width={"1.25rem"} height={"1.25rem"} />
-              Delete
+              <TrashIcon width={"1rem"} height={"1rem"} />
+              delete
             </MenuContainer>
           )}
         </>
@@ -119,6 +141,11 @@ const MoreContainer = styled.div`
   position: absolute;
   top: 0.875rem;
   right: 0.5rem;
+
+  &:hover svg circle {
+    transition: fill 0.5s ease;
+    fill: var(--theme-color-4);
+  }
 `;
 
 const MenuContainer = styled.div`
@@ -128,8 +155,10 @@ const MenuContainer = styled.div`
   padding: 1rem;
 
   display: flex;
+  align-items: center;
   gap: 0.25rem;
 
+  font-size: 0.875rem;
   border-radius: 0.5rem;
   background-color: var(--theme-color-2);
 

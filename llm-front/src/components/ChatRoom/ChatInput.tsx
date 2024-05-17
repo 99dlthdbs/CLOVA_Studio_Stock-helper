@@ -15,7 +15,9 @@ const ChatInput = () => {
   const [chattingList, setChattingList] =
     useAtom<ChattingTypes[]>(chattingListAtoms);
 
-  let temp = [...chattingList];
+  let temp = useMemo(() => {
+    return [...chattingList];
+  }, [chattingList, pathname]);
 
   const [text, setText] = useState<string>("");
 
@@ -36,14 +38,14 @@ const ChatInput = () => {
 
   const onSend = useCallback(() => {
     sendMessage(roomId);
-  }, [pathname, roomId, text]);
+    setText("");
+  }, [pathname, roomId, text, chattingList]);
 
   const sendMessage = (roomId: string | null | undefined) => {
     if (!roomId) {
       createRoom().then((e) => {
         const roomid = e.id;
         temp = addRequestData(temp, text, roomId || roomid);
-
         setChattingList(temp);
 
         connectWebSockect(text, roomId || roomid);
@@ -51,14 +53,28 @@ const ChatInput = () => {
     } else {
       temp = addRequestData(temp, text, roomId);
       setChattingList(temp);
-      console.log("DEBUG SEND", temp);
-
-      console.log(temp);
-      console.log(chattingList);
 
       connectWebSockect(text, roomId);
     }
   };
+
+  const onEnterHandler = useCallback(
+    (event: React.KeyboardEvent) => {
+      const { key, shiftKey } = event;
+
+      if (event.nativeEvent.isComposing) {
+        event.stopPropagation();
+        return;
+      }
+
+      if (key === "Enter" && !shiftKey) {
+        if (!text) return;
+
+        onSend();
+      }
+    },
+    [pathname, roomId, text, chattingList],
+  );
 
   const connectWebSockect = (text: string, roomId: string) => {
     const ws = new WebSocket(`ws://${import.meta.env.VITE_API_URL}/infer`);
@@ -87,8 +103,6 @@ const ChatInput = () => {
     requestText: string,
     roomId: string,
   ) => {
-    console.log("DEBUG ADD", temp);
-
     return [
       ...list,
       {
@@ -125,6 +139,7 @@ const ChatInput = () => {
         value={text}
         placeholder={"Message Stockelper..."}
         onChange={onChangeTextAreaHandler}
+        onKeyDown={onEnterHandler}
       />
       <IconContainer onClick={onSend}>
         <SendIcon
