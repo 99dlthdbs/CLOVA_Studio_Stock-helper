@@ -29,7 +29,8 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 app.mount('/static', StaticFiles(directory='static'), name='static')
 
 origins = [
-    "http://localhost:5174"
+    "http://localhost:5174",
+    "http://223.130.140.186:5173"
 ]
 
 app.add_middleware(
