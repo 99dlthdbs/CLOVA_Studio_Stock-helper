@@ -7,8 +7,11 @@ COPY ./Pipfile.lock /code/Pipfile.lock
 
 RUN pip install pipenv
 RUN pipenv install
-RUN pipenv shell
 
 COPY . /code/
+
+EXPOSE 8000
+
+CMD ["pipenv", "shell"]
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0"]
