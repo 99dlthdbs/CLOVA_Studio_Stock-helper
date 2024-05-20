@@ -1,64 +1,85 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <title>Chat</title>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link
-      rel="stylesheet"
-      as="style"
-      crossorigin
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+<head>
+  <title>Chat</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link
+          rel="stylesheet"
+          as="style"
+          crossorigin
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+  />
+  <link rel="stylesheet" href="/static/reset.css"/>
+  <link rel="stylesheet" href="/static/style.css"/>
+  <link
+          rel="stylesheet"
+          href="//cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css"
+  />
+</head>
+<body>
+<div id="header" class="header">
+  <p class="title">STOCK API TEST</p>
+</div>
+<div id="main-content"></div>
+<div id="bottom">
+  <form action="" onsubmit="sendMessage(event)">
+    <input
+            type="text"
+            class="send-input"
+            id="messageText"
+            autocomplete="off"
     />
-    <link rel="stylesheet" href="/static/reset.css" />
-    <link rel="stylesheet" href="/static/style.css" />
-    <link
-      rel="stylesheet"
-      href="//cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css"
-    />
-  </head>
-  <body>
-    <div id="header" class="header">
-      <p class="title">STOCK API TEST</p>
-    </div>
-    <div id="main-content">
-      <div id="result"></div>
-    </div>
-    <div id="bottom">
-      <form action="" onsubmit="sendMessage(event)">
-        <input
-          type="text"
-          class="send-input"
-          id="messageText"
-          autocomplete="off"
-        />
-      </form>
-      <i class="xi-send" onclick="sendMessage(event)"></i>
-    </div>
-    <script>
-      let isLoading = false;
+  </form>
+  <i class="xi-send" onclick="sendMessage(event)"></i>
+</div>
+<script>
+  let isLoading = false;
 
-      function sendMessage(event) {
-        event.preventDefault();
+  function sendMessage(event) {
+    event.preventDefault();
 
-        const input = messageText.value;
-        messageText.value = "";
+    const input = messageText.value;
+    messageText.value = "";
 
-        const ws = new WebSocket("ws://localhost:8000/gpt");
-        ws.onopen = function () {
-          console.log("WEBSOCKET OPEN!");
-          ws.send(input);
-        };
+    if (input.trim() === "") {
+      alert("내용을 입력해주세요.");
+      return;
+    }
 
-        ws.onmessage = function (event) {
-          const result = document.getElementById("result");
-          result.innerText = result.innerText + event.data;
-        };
+    const result = document.getElementById("main-content");
 
-        ws.onclose = function () {
-          console.log("WEBSOCKET CLOSE!");
-          ws.close();
-        };
+    const new_my_msg = document.createElement("div");
+    new_my_msg.className = "my-message message";
+    new_my_msg.innerHTML = input;
+    result.appendChild(new_my_msg);
+
+    const new_reply = document.createElement("div");
+    new_reply.className = "ai-message message";
+    result.appendChild(new_reply);
+
+    let real_txt = "";
+
+    const ws = new WebSocket("ws://localhost:8000/infer");
+    ws.onopen = function () {
+      console.log("WEBSOCKET OPEN!");
+      const send_data = {
+        msg: input,
+        room_id: 2,
       }
-    </script>
-  </body>
+      ws.send(JSON.stringify(send_data));
+    };
+
+    ws.onmessage = function (event) {
+      const result = document.getElementById("result");
+      real_txt += event.data;
+      new_reply.innerHTML = marked.parse(real_txt);
+    };
+
+    ws.onclose = function () {
+      console.log("WEBSOCKET CLOSE!");
+      ws.close();
+    };
+  }
+</script>
+</body>
 </html>
