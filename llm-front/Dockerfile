@@ -17,4 +17,4 @@ COPY . .
 # 3000번 포트 노출
 EXPOSE 5173
 # npm start 스크립트 실행
-CMD ["pnpm", "start"]
+CMD ["pnpm", "start", "--host", "0.0.0.0"]
