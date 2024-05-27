@@ -3,9 +3,10 @@ import ChartIcon from "@/assets/icon-chart-line-up.svg?react";
 import ChatListItem from "@/components/ChatList/ChatListItem";
 import UserInfo from "@/components/ChatList/UserInfo";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getRoomList } from "@/apis/getRoomList";
+
 import { RoomListTypes } from "@/types/RoomTypes";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getRoomList } from "@/apis/room/getRoomList";
 
 const ChatList = () => {
   const { pathname } = useLocation();

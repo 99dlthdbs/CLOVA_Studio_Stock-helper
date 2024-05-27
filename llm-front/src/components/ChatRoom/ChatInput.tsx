@@ -3,10 +3,11 @@ import SendIcon from "@/assets/icon-paper-plane.svg?react";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ChattingTypes } from "@/types/ChattingTypes";
-import { createRoom } from "@/apis/createRoom";
+
 import { v4 as uuidv4 } from "uuid";
 import { chattingListAtoms } from "@/atom/chattingAtoms";
 import { useAtom } from "jotai";
+import { createRoom } from "@/apis/room/createRoom";
 
 const ChatInput = () => {
   const { pathname } = useLocation();
