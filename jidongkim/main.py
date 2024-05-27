@@ -13,8 +13,9 @@ from sqlalchemy.orm import Session
 
 from db.db import engine, get_db_session
 from db.models.BaseModel import Base
-from routes import chatting_routes, room_routes
+import routes
 from routes.chatting_routes import add_chat
+import routes.chatting_routes
 
 load_dotenv()
 
@@ -26,12 +27,9 @@ key = os.environ.get("OPENAI_API_KEY")
 print("KEY", key)
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-app.mount('/static', StaticFiles(directory='static'), name='static')
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-origins = [
-    "http://localhost:5174",
-    "http://223.130.140.186:5173"
-]
+origins = ["http://localhost:5174", "http://223.130.140.186:5173"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,8 +39,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chatting_routes.router)
-app.include_router(room_routes.router)
+app.include_router(routes.chatting_routes)
+app.include_router(routes.room_routes)
+app.include_router(routes.auth_routes)
 
 
 @app.get("/")
@@ -52,8 +51,10 @@ async def get():
     return HTMLResponse(content=data, media_type="text/html")
 
 
-@app.websocket('/infer')
-async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db_session)):
+@app.websocket("/infer")
+async def websocket_endpoint(
+    websocket: WebSocket, db: Session = Depends(get_db_session)
+):
     await websocket.accept()
     while True and websocket.client_state == WebSocketState.CONNECTED:
         if websocket.client_state != WebSocketState.CONNECTED:
@@ -61,7 +62,7 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db_
 
         data = await websocket.receive_text()
 
-        print('data:', data)
+        print("data:", data)
 
         # parsing data (json text) to dict
         # data
@@ -71,7 +72,7 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db_
 
         stream = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": data['msg']}],
+            messages=[{"role": "user", "content": data["msg"]}],
             stream=True,
         )
 
@@ -89,6 +90,8 @@ async def websocket_endpoint(websocket: WebSocket, db: Session = Depends(get_db_
             else:
                 await websocket.close()
 
-        print('str:', infer_text)
+        print("str:", infer_text)
 
-        add_chat(room_id=data['room_id'], question=data['msg'], answer=infer_text, db=db)
+        add_chat(
+            room_id=data["room_id"], question=data["msg"], answer=infer_text, db=db
+        )
