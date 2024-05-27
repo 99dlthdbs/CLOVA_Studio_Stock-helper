@@ -1,0 +1,49 @@
+name: Backend Deploy to Server
+
+on:
+  push:
+    branches:
+      - be-deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install expect
+      run: sudo apt-get update && sudo apt-get install -y expect
+
+    - name: Copy files to server
+      run: |
+        expect << EOF
+        spawn rsync -avz -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/root/kjd/CLOVA_Studio_Stock-helper/jidongkim
+        expect "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}'s password:"
+        send "$env:SERVER_PASSWORD\r"
+        interact
+        EOF
+      env:
+        SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
+
+    - name: SSH and deploy
+      run: |
+        expect << EOF
+        spawn ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}
+        expect "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}'s password:"
+        send "$env:SERVER_PASSWORD\r"
+        expect "$ "
+        send "cd /root/kjd/CLOVA_Studio_Stock-helper/jidongkim\r"
+        expect "$ "
+        send "git pull origin be-deploy\r"
+        expect "$ "
+        send "docker-compose down\r"
+        expect "$ "
+        send "docker-compose up -d --build\r"
+        expect "$ "
+        send "exit\r"
+        interact
+        EOF
+      env:
+        SERVER_PASSWORD: ${{ secrets.SERVER_PASSWORD }}
