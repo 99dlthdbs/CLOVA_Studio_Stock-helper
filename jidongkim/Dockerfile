@@ -14,4 +14,4 @@ COPY . /code/
 
 EXPOSE 8000
 
-CMD ["pipenv", "run", "uvicorn", "fastapi", "/code/main.py", "--port", "8000"]`
+CMD ["pipenv", "run", "fastapi", "/code/main.py", "--port", "8000"]`
