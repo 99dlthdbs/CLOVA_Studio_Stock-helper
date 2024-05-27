@@ -86,8 +86,8 @@ async def login_for_access_token(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        expires=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        max_age=int(ACCESS_TOKEN_EXPIRE_MINUTES) * 60,
+        expires=int(ACCESS_TOKEN_EXPIRE_MINUTES) * 60,
     )
 
     return response
@@ -106,7 +106,6 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)):
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        print(payload)
         email: str = payload.get("sub")
         if email is None:
             raise HTTPException(
