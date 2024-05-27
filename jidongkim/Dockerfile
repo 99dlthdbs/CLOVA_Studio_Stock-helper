@@ -2,6 +2,8 @@ FROM python:3.12
 
 WORKDIR /code
 
+ENV PIPENV_VENV_IN_PROJECT=1
+
 COPY ./Pipfile /code/Pipfile
 COPY ./Pipfile.lock /code/Pipfile.lock
 
@@ -12,4 +14,4 @@ COPY . /code/
 
 EXPOSE 8000
 
-CMD ["pipenv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["pipenv", "run", "uvicorn", "fastapi", "/code/main.py", "--port", "8000"]`
