@@ -5,13 +5,10 @@ from db.db import get_db_session
 from db.models.ChattingModels import ChattingRoomModel, ChattingModel
 from schemas.chatting_schemas import ChattingDisplay
 
-router = APIRouter(
-    prefix='/chatting',
-    tags=['chatting']
-)
+router = APIRouter(prefix="/chatting", tags=["chatting"])
 
 
-@router.get('/{room_id}', response_model=list[ChattingDisplay])
+@router.get("/{room_id}", response_model=list[ChattingDisplay])
 def get_chatting(room_id: int, db: Session = Depends(get_db_session)):
     room = db.query(ChattingRoomModel).filter(ChattingRoomModel.id == room_id).first()
 
@@ -25,7 +22,7 @@ def get_chatting(room_id: int, db: Session = Depends(get_db_session)):
     return chat_list
 
 
-@router.get('/{room_id}/latest', response_model=ChattingDisplay)
+@router.get("/{room_id}/latest", response_model=ChattingDisplay)
 def get_lastest_chatting(room_id: int, db: Session = Depends(get_db_session)):
     room = db.query(ChattingRoomModel).filter(ChattingRoomModel.id == room_id).first()
 
@@ -44,7 +41,9 @@ def add_chat(room_id: int, question: str, answer: str, db: Session):
         return "Room not found"
 
     chat_len = len(room.chats) + 1
-    chat = ChattingModel(room_id=room_id, chat_idx=chat_len, question=question, answer=answer)
+    chat = ChattingModel(
+        room_id=room_id, chat_idx=chat_len, question=question, answer=answer
+    )
 
     db.add(chat)
     db.commit()
