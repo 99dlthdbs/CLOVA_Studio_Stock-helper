@@ -132,3 +132,9 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)):
 @router.get("/me", response_model=auth_schemas.User)
 def read_users_me(current_user: auth_schemas.User = Depends(get_current_user)):
     return current_user
+
+
+@router.delete("/logout")
+async def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Logout successful"}
