@@ -2,11 +2,11 @@ import styled from "@emotion/styled";
 import Message from "@/components/ChatRoom/Message";
 import ChatInput from "@/components/ChatRoom/ChatInput";
 import { Fragment, useCallback, useEffect, useMemo, useRef } from "react";
-import { getChatting } from "@/apis/getChatting";
 import { useLocation } from "react-router-dom";
 import { ChattingTypes } from "@/types/ChattingTypes";
 import { useAtom } from "jotai";
 import { chattingListAtoms } from "@/atom/chattingAtoms";
+import { getChatting } from "@/apis/chatting/getChatting";
 
 const Chat = () => {
   const { pathname } = useLocation();

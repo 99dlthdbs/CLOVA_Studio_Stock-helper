@@ -3,15 +3,24 @@ import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
+import { login } from "@/apis/auth/login";
+import { logInUserInfoType } from "@/types/AuthTypes";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState({ email: "", password: "" });
+  const [userInfo, setUserInfo] = useState<logInUserInfoType>({
+    email: "",
+    password: "",
+  });
 
-  const onClickLogInHandler = useCallback(() => {
-    alert("login success");
-    navigate("/chat");
-  }, [navigate]);
+  const onClickLogInHandler = useCallback(async () => {
+    const result = await login(userInfo);
+    console.log(result);
+
+    if (result.access_token) {
+      navigate("/chat");
+    }
+  }, [navigate, userInfo]);
 
   const onClickCancelHandler = useCallback(() => {
     navigate("/");

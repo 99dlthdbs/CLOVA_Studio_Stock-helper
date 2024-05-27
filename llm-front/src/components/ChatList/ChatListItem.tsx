@@ -2,8 +2,9 @@ import styled from "@emotion/styled";
 import MoreIcon from "@/assets/menu-dots-vertical.svg?react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { deleteRoom } from "@/apis/deleteRoom";
+
 import TrashIcon from "@/assets/trash.svg?react";
+import { deleteRoom } from "@/apis/room/deleteRoom";
 
 interface ChatListItemProps {
   title: string;
