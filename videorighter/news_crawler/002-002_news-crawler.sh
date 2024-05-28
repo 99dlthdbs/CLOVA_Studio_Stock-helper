@@ -5,4 +5,4 @@ python 002-002_news-crawler.py \
     --database financial \
     --query 삼성전자 \
     --ds '2024.03.01' \
-    --de '2024.05.21'
+    --de '2024.05.27'

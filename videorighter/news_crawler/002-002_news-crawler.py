@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup as bs
 from pymongo import MongoClient
 import argparse
 import time
+import random
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="MongoDB connection parameters")
@@ -50,11 +52,16 @@ def fetch_news_data(params, headers, url, db):
                 continue
             press_select = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_top._LAZY_LOADING_WRAP > a > img.media_end_head_top_logo_img.light_type._LAZY_LOADING._LAZY_LOADING_INIT_HIDE')
             press = press_select['title'] if 'title' in press_select.attrs else 'Title attribute not found'
-            time = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_info.nv_notrans > div.media_end_head_info_datestamp > div:nth-child(1) > span')['data-date-time']
+            date = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_info.nv_notrans > div.media_end_head_info_datestamp > div:nth-child(1) > span')['data-date-time']
             summary = article_soup.select_one('#dic_area > strong').get_text(strip=True) if article_soup.select_one('#dic_area > strong') else None
+            for span in article_soup.find_all('span', class_='end_photo_org'):
+                span.decompose()
             content = article_soup.select_one('#dic_area').get_text(strip=True).replace("\n\n\n", "")
+            if summary is not None:
+                index = content.find(summary)
+                content = content[index + len(summary):] if index != -1 else content
             tmp = {
-                'date_news': time,
+                'date': date,
                 'query': params['query'],
                 'title': title,
                 'press': press,
@@ -63,7 +70,7 @@ def fetch_news_data(params, headers, url, db):
                 'url': link[2:-2],
             }
             batch.append(tmp)
-            print(time, link[2:-2])
+            print(date, link[2:-2])
 
         # 중복 여부 확인 및 저장
         existing_urls = db.news.find({"url": {"$in": [news['url'] for news in batch]}}).distinct("url")
@@ -82,6 +89,7 @@ def fetch_news_data(params, headers, url, db):
             flag += 1
 
         params['start'] = str(int(params['start']) + 10)
+        time.sleep(float(random.uniform(1, 2)))
 
     return total
 
