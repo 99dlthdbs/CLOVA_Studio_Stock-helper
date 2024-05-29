@@ -1,5 +1,5 @@
 import requests
-from urllib.parse import urlparse, urlencode, urlunparse
+from urllib.parse import urlparse, urlencode, urlunparse, quote_plus
 from datetime import datetime
 from bs4 import BeautifulSoup as bs
 from pymongo import MongoClient
@@ -10,10 +10,10 @@ import random
 
 def parse_args():
     parser = argparse.ArgumentParser(description="MongoDB connection parameters")
-    parser.add_argument('--host', type=str, required=True, help='MongoDB host address') # 223.130.138.213
-    parser.add_argument('--port', type=int, required=False, help='MongoDB port number') # 30001
-    parser.add_argument('--username', type=str, required=True, help='MongoDB username') # root
-    parser.add_argument('--password', type=str, default='financial', required=True, help='MongoDB password') # financial
+    parser.add_argument('--host', type=str, required=True, help='MongoDB host address')
+    parser.add_argument('--port', type=int, required=False, help='MongoDB port number')
+    parser.add_argument('--username', type=str, required=True, help='MongoDB username')
+    parser.add_argument('--password', type=str, default='financial', required=True, help='MongoDB password')
     parser.add_argument('--database', type=str, required=True, help='MongoDB database name')
     parser.add_argument('--query', type=str, required=True, help='검색 쿼리')
     parser.add_argument('--ds', type=str, default=datetime.now().strftime("%Y.%m.%d.%H")+".00", help='시작 일시')
@@ -28,70 +28,109 @@ def make_url(base_url, params):
 def fetch_news_data(params, headers, url, db):
     total = []
     flag = 0
-    while flag < 5:
+    while flag < 30:
+        naver_news_links = []
+        batch = []        
+
         new_url = make_url(url, params)
         response = requests.get(new_url, headers=headers)
-        soup = bs(response.content, 'html.parser')
-        naver_news_links = []
-        for a in soup.find_all('a', string='네이버뉴스'):
-            if a['href']:
-                naver_news_links.append(a['href'])
-        if not naver_news_links:
-            params['start'] = str(int(params['start']) + 10)
+        if response.status_code != 200:
+            print("Connection Issue")
+            time.sleep(float(random.uniform(0.1, 0.5)))
             flag += 1
             continue
+        
+        soup = bs(response.content, 'html.parser')
+        naver_news_links = [a['href'][2:-2] for a in soup.find_all('a', string='네이버뉴스') if a['href']]
 
-        batch = []
+        if not naver_news_links:
+            params['start'] = str(int(params['start']) + 10)
+            print("No NAVER NEWS Platforms")
+            time.sleep(float(random.uniform(0.1, 0.5)))
+            flag += 1
+            continue
+        
         for link in naver_news_links:
+            print("link: ", link)
+            
             if 'sports' in link or 'entertain' in link:
                 continue
-            article_res = requests.get(link[2:-2])
-            article_soup = bs(article_res.content, 'html.parser')
-            title = article_soup.select_one('#title_area > span').get_text(strip=True)
-            if params['query'] not in title:
+
+            article_res = requests.get(link)
+            
+            if article_res.status_code != 200:
+                print("Connection Issue")
+                time.sleep(float(random.uniform(0.1, 0.5)))
                 continue
+            
+            article_soup = bs(article_res.content, 'html.parser')
+            
+            try:
+                title = article_soup.select_one('#title_area > span').get_text(strip=True)
+            except:
+                print(article_soup.select_one('#title_area > span'))
+                article_res = requests.get(link)
+                article_soup = bs(article_res.content, 'html.parser')
+                title = article_soup.select_one('#title_area > span').get_text(strip=True)
+
+            if params['query'] not in title:
+                print("Query is not in the Title")
+                time.sleep(float(random.uniform(0.1, 0.5)))
+                continue
+            
+            print("==========================================")
+            
+            print("title: ", title)
             press_select = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_top._LAZY_LOADING_WRAP > a > img.media_end_head_top_logo_img.light_type._LAZY_LOADING._LAZY_LOADING_INIT_HIDE')
             press = press_select['title'] if 'title' in press_select.attrs else 'Title attribute not found'
+            print("link: ", link)
+            print("press: ", press)
             date = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_info.nv_notrans > div.media_end_head_info_datestamp > div:nth-child(1) > span')['data-date-time']
+            print("date: ", date)
             summary = article_soup.select_one('#dic_area > strong').get_text(strip=True) if article_soup.select_one('#dic_area > strong') else None
+            print("summary: ", summary)
+            
             for span in article_soup.find_all('span', class_='end_photo_org'):
                 span.decompose()
+            
             content = article_soup.select_one('#dic_area').get_text(strip=True).replace("\n\n\n", "")
+            
             if summary is not None:
                 index = content.find(summary)
                 content = content[index + len(summary):] if index != -1 else content
+
+            print("content: ", content)
+            
+            print("==========================================")
             tmp = {
-                'date': date,
+                'news_date': date.split(" ")[0],
+                'news_time': date.split(" ")[1],
                 'query': params['query'],
                 'title': title,
                 'press': press,
                 'summary': summary,
                 'content': content,
-                'url': link[2:-2],
+                'url': link,
             }
             batch.append(tmp)
-            print(date, link[2:-2])
+            time.sleep(float(random.uniform(0.1, 0.5)))
 
-        # 중복 여부 확인 및 저장
-        existing_urls = db.news.find({"url": {"$in": [news['url'] for news in batch]}}).distinct("url")
-        if existing_urls:
-            batch = [news for news in batch if news['url'] not in existing_urls]
-            if not batch:
-                flag += 1
-                continue
-        else:
-            flag = 0
-
-        if batch:
-            db.news.insert_many(batch)
-            total.extend(batch)
-        else:
+        tmp = 0
+        for news in batch:
+            existing_news = db.news.find_one({"url": news['url'], "query": news['query'], "news_date": news['news_date'], "news_time": news['news_time']})
+            
+            if not existing_news:
+                db.news.insert_one(news)
+                flag = 0
+            else:
+                print("Duplication Issue")
+                tmp += 1
+        if tmp == len(batch):
+            print("All batch data is Duplicated")
             flag += 1
 
         params['start'] = str(int(params['start']) + 10)
-        time.sleep(float(random.uniform(1, 2)))
-
-    return total
+        time.sleep(float(random.uniform(0.7, 1)))
 
 def main(args):
 
@@ -121,6 +160,7 @@ def main(args):
         client = MongoClient(args.host, username=args.username, password=args.password)    
     else:
         client = MongoClient(args.host, args.port, username=args.username, password=args.password)
+    
     db = client[args.database]
     fetch_news_data(params, headers, url, db)
 
@@ -128,4 +168,4 @@ if __name__ == "__main__":
     args = parse_args()
     start = time.time()
     main(args)
-    print("time: ", time.time() - start)
+    print("Execution time: ", time.time() - start)
