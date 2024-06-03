@@ -7,6 +7,8 @@ from datetime import timedelta, datetime
 from jose import JWTError, jwt
 from typing import Optional
 
+import bcrypt
+
 from db.db import get_db_session
 from db.models import AuthModels
 from schemas import auth_schemas
@@ -17,26 +19,70 @@ ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def get_password_hash(password):
-    return pwd_context.hash(password)
-
-
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict):
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def hash_password(password):
+    pwd_bytes = password.encode("utf-8")
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password=pwd_bytes, salt=salt)
+    return hashed_password.decode(
+        "utf-8"
+    )  # Convert bytes to string before storing in the database
+
+
+def verify_password(plain_password, hashed_password):
+    password_byte_enc = plain_password.encode("utf-8")
+    hashed_password_bytes = hashed_password.encode(
+        "utf-8"
+    )  # Convert string to bytes before checking
+    return bcrypt.checkpw(
+        password=password_byte_enc, hashed_password=hashed_password_bytes
+    )
+
+
+def decode_access_token(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Could not validate credentials",
+        )
+    return payload
+
+
+def get_user_from_token(token: str, db: Session = Depends(get_db_session)):
+    payload = decode_access_token(token)
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=400, detail="Invalid token")
+    user = db.query(AuthModels.User).filter(AuthModels.User.username == user_id).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+
+def get_current_user(request: Request, db: Session = Depends(get_db_session)):
+    access_token = request.cookies.get("access_token")
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    access_token = access_token.replace("Bearer ", "")
+    payload = decode_access_token(access_token)
+    user = (
+        db.query(AuthModels.User)
+        .filter(AuthModels.User.username == payload.get("sub"))
+        .first()
+    )
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 
 @router.post("/signup", response_model=auth_schemas.User)
@@ -45,8 +91,13 @@ def create_user(user: auth_schemas.UserCreate, db: Session = Depends(get_db_sess
         db.query(AuthModels.User).filter(AuthModels.User.email == user.email).first()
     )
     if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    hashed_password = get_password_hash(user.password)
+        raise HTTPException(
+            status_code=400,
+            detail="Username already exists",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    hashed_password = hash_password(user.password)
     db_user = AuthModels.User(
         email=user.email, password=hashed_password, nickname=user.nickname
     )
@@ -58,77 +109,34 @@ def create_user(user: auth_schemas.UserCreate, db: Session = Depends(get_db_sess
 
 @router.post("/login", response_model=auth_schemas.Token)
 async def login_for_access_token(
-    request: auth_schemas.UserLogin, db: Session = Depends(get_db_session)
+    user: auth_schemas.UserLogin,
+    db: Session = Depends(get_db_session),
+    response: Response = None,
 ):
-    data = request.model_dump()
-    email = data.get("email")
-    password = data.get("password")
-    if email is None or password is None:
-        raise HTTPException(status_code=400, detail="Email and password are required")
+    db_user = (
+        db.query(AuthModels.User).filter(AuthModels.User.email == user.email).first()
+    )
 
-    user = db.query(AuthModels.User).filter(AuthModels.User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
-    if not verify_password(password, user.password):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    if not db_user or not verify_password(user.password, db_user.password):
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    access_token_expires = timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": db_user.email}, expires_delta=access_token_expires
     )
-
-    response = JSONResponse(
-        content={"access_token": access_token, "token_type": "bearer"},
-        media_type="application/json",
-    )
-
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
-        max_age=int(ACCESS_TOKEN_EXPIRE_MINUTES) * 60,
-        expires=int(ACCESS_TOKEN_EXPIRE_MINUTES) * 60,
+        secure=True,
+        samesite="none",
     )
 
-    return response
-
-
-def get_current_user(request: Request, db: Session = Depends(get_db_session)):
-    token = request.cookies.get("access_token")
-    print("TOKEN", token)
-    print(request)
-
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
-        )
-
-    # Ensure token starts with "Bearer " and extract the actual token
-    if token.startswith("Bearer "):
-        token = token[len("Bearer ") :]
-
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Could not validate credentials",
-            )
-    except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-        )
-
-    user = db.query(AuthModels.User).filter(AuthModels.User.email == email).first()
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-        )
-
-    return user
+    return {"data": True}
 
 
 @router.get("/me", response_model=auth_schemas.User)
@@ -137,6 +145,15 @@ def read_users_me(current_user: auth_schemas.User = Depends(get_current_user)):
 
 
 @router.delete("/logout")
-async def logout(response: Response):
-    response.delete_cookie("access_token")
-    return {"message": "Logout successful"}
+def logout(response: Response):
+    response.delete_cookie(key="access_token")
+    return {"data": "Logged out"}
+
+
+@router.get("/isLogged")
+def is_logged(request: Request):
+    access_token = request.cookies.get("access_token")
+    print(request.cookies)
+    if not access_token:
+        return {"isLogged": False}
+    return {"isLogged": True}
