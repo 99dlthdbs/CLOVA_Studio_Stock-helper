@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import json
 import os
 
@@ -13,7 +14,8 @@ from sqlalchemy.orm import Session
 
 from db.db import engine, get_db_session
 from db.models.BaseModel import Base
-from routes.auth_routes import get_current_user
+from db.models import AuthModels, ChattingModels
+from routes.auth_routes import decode_access_token, get_current_user
 import routes
 from routes.chatting_routes import add_chat
 import routes.chatting_routes
@@ -31,6 +33,7 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 origins = [
+    "http://localhost:5173",
     "http://localhost:5174",
     "http://223.130.140.186:5173",
     "http://223.130.128.222:30002",
@@ -58,9 +61,7 @@ async def get():
 
 @app.websocket("/infer")
 async def websocket_endpoint(
-    websocket: WebSocket,
-    db: Session = Depends(get_db_session),
-    user=Depends(get_current_user),
+    websocket: WebSocket, db: Session = Depends(get_db_session)
 ):
     await websocket.accept()
     while True and websocket.client_state == WebSocketState.CONNECTED:
@@ -71,11 +72,51 @@ async def websocket_endpoint(
 
         print("data:", data)
 
-        # parsing data (json text) to dict
-        # data
-        # msg = string
-        # room_id = int
+        # msg, token, room_id
         data = json.loads(data)
+
+        # email, room_id, exp
+        decoded_token = decode_access_token(data["token"])
+
+        db_token = (
+            db.query(AuthModels.ChatToken)
+            .filter(AuthModels.ChatToken.token == data["token"])
+            .first()
+        )
+
+        if not decoded_token or not db_token:
+            await websocket.send_text("Invalid token")
+            await websocket.close()
+            break
+
+        if decoded_token["exp"] < datetime.utcnow().timestamp():
+            await websocket.send_text("Token expired")
+            await websocket.close()
+            break
+
+        room_info = (
+            db.query(ChattingModels.ChattingRoomModel)
+            .filter(ChattingModels.ChattingRoomModel.id == data["room_id"])
+            .first()
+        )
+
+        if not room_info:
+            await websocket.send_text("Room not found")
+            await websocket.close()
+            break
+
+        user = (
+            db.query(AuthModels.User)
+            .filter(AuthModels.User.email == decoded_token["email"])
+            .first()
+        )
+
+        if room_info.owner_id != user.id:
+            await websocket.send_text("Not owner of the room")
+            await websocket.close()
+            break
+
+        print("decoded_token:", decoded_token)
 
         stream = client.chat.completions.create(
             model="gpt-3.5-turbo",

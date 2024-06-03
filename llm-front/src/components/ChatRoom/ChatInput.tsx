@@ -1,13 +1,14 @@
-import styled from "@emotion/styled";
 import SendIcon from "@/assets/icon-paper-plane.svg?react";
+import { ChattingTypes } from "@/types/ChattingTypes";
+import styled from "@emotion/styled";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ChattingTypes } from "@/types/ChattingTypes";
 
-import { v4 as uuidv4 } from "uuid";
+import { getChatToken } from "@/apis/chatting/getChatToken";
+import { createRoom } from "@/apis/room/createRoom";
 import { chattingListAtoms } from "@/atom/chattingAtoms";
 import { useAtom } from "jotai";
-import { createRoom } from "@/apis/room/createRoom";
+import { v4 as uuidv4 } from "uuid";
 
 const ChatInput = () => {
   const { pathname } = useLocation();
@@ -45,17 +46,21 @@ const ChatInput = () => {
   const sendMessage = (roomId: string | null | undefined) => {
     if (!roomId) {
       createRoom().then((e) => {
-        const roomid = e.id;
-        temp = addRequestData(temp, text, roomId || roomid);
-        setChattingList(temp);
+        getChatToken(e.id).then((res) => {
+          const roomid = e.id;
+          temp = addRequestData(temp, text, roomId || roomid);
+          setChattingList(temp);
 
-        connectWebSockect(text, roomId || roomid);
+          connectWebSockect(text, roomId || roomid, res.token);
+        })
       });
     } else {
-      temp = addRequestData(temp, text, roomId);
-      setChattingList(temp);
+      getChatToken(roomId).then((res) => {
+        temp = addRequestData(temp, text, roomId);
+        setChattingList(temp);
 
-      connectWebSockect(text, roomId);
+        connectWebSockect(text, roomId, res.token);
+      });
     }
   };
 
@@ -77,10 +82,10 @@ const ChatInput = () => {
     [pathname, roomId, text, chattingList],
   );
 
-  const connectWebSockect = (text: string, roomId: string) => {
+  const connectWebSockect = (text: string, roomId: string, token: string) => {
     const ws = new WebSocket(`ws://${import.meta.env.VITE_API_URL}/infer`);
     ws.onopen = () => {
-      const sendData = { msg: text, room_id: roomId };
+      const sendData = { msg: text, room_id: roomId, token: token };
       ws.send(JSON.stringify(sendData));
     };
 

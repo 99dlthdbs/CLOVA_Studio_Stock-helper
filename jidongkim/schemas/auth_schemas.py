@@ -32,4 +32,15 @@ class Token(BaseModel):
 
 
 class ResponseLogin(BaseModel):
-    data: bool
+    email: str
+    nickname: str
+
+
+class ChatToken(BaseModel):
+    token: str
+    user_id: int
+    expires_at: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -12,6 +13,8 @@ import bcrypt
 from db.db import get_db_session
 from db.models import AuthModels
 from schemas import auth_schemas
+
+load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
@@ -134,7 +137,10 @@ async def login_for_access_token(
     # secure=False,
     # samesite="none",
 
-    return {"data": True}
+    return {
+        "email": db_user.email,
+        "nickname": db_user.nickname,
+    }
 
 
 @router.get("/me", response_model=auth_schemas.User)
