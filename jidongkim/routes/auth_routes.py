@@ -107,7 +107,7 @@ def create_user(user: auth_schemas.UserCreate, db: Session = Depends(get_db_sess
     return db_user
 
 
-@router.post("/login", response_model=auth_schemas.Token)
+@router.post("/login", response_model=auth_schemas.ResponseLogin)
 async def login_for_access_token(
     user: auth_schemas.UserLogin,
     db: Session = Depends(get_db_session),
@@ -125,6 +125,7 @@ async def login_for_access_token(
         )
 
     access_token = create_access_token(data={"sub": db_user.email})
+
     response.set_cookie(
         key="access_token",
         value=f"Bearer {access_token}",

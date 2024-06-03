@@ -29,3 +29,7 @@ class User(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class ResponseLogin(BaseModel):
+    data: bool
