@@ -5,12 +5,12 @@ name = "pypi"
 
 [packages]
 fastapi = "*"
-uvicorn = {extras = ["standard"], version = "*"}
 sqlalchemy = "*"
 openai = "*"
 python-jose = "*"
 passlib = "*"
 bcrypt = "*"
+uvicorn = {extras = ["standard"], version = "*"}
 
 [dev-packages]
 
