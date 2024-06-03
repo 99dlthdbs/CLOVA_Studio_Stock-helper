@@ -4,13 +4,14 @@ WORKDIR /code
 
 ENV PIPENV_VENV_IN_PROJECT=1
 
-COPY ./Pipfile /code/Pipfile
-COPY ./Pipfile.lock /code/Pipfile.lock
-
 RUN pip install pipenv
+
+COPY ./Pipfile .
+COPY ./Pipfile.lock .
+
 RUN pipenv install --deploy --ignore-pipfile
 
-COPY . /code/
+COPY . .
 
 EXPOSE 8000
 

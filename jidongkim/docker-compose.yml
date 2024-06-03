@@ -2,12 +2,14 @@ version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     ports:
       - "30001:8000"
     volumes:
       - .:/code
+      - db-data:/code/stock.db
     environment:
       - PIPENV_VENV_IN_PROJECT=1
+
+volumes:
+  db-data:
