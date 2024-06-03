@@ -6,7 +6,7 @@ services:
     ports:
       - "30001:8000"
     volumes:
-      - db-data:/code
+      - db-data:/code/db-data
     environment:
       - PIPENV_VENV_IN_PROJECT=1
 
