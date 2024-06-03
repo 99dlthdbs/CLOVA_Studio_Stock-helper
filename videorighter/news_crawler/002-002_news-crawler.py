@@ -16,8 +16,8 @@ def parse_args():
     parser.add_argument('--password', type=str, default='financial', required=True, help='MongoDB password')
     parser.add_argument('--database', type=str, required=True, help='MongoDB database name')
     parser.add_argument('--query', type=str, required=True, help='검색 쿼리')
-    parser.add_argument('--ds', type=str, default=datetime.now().strftime("%Y.%m.%d.%H")+".00", help='시작 일시')
-    parser.add_argument('--de', type=str, default=datetime.now().strftime("%Y.%m.%d.%H.%M"), help='종료 일시')
+    parser.add_argument('--ds', type=str, default=datetime.now().strftime("%Y.%m.%d"), help='시작 일시')
+    parser.add_argument('--de', type=str, default=datetime.now().strftime("%Y.%m.%d"), help='종료 일시')
     return parser.parse_args()
 
 def make_url(base_url, params):
@@ -35,7 +35,7 @@ def fetch_news_data(params, headers, url, db):
         response = requests.get(new_url, headers=headers)
         if response.status_code != 200:
             print("Connection Issue")
-            time.sleep(float(random.uniform(0.1, 0.5)))
+            time.sleep(float(random.uniform(0.2, 0.5)))
             continue
         
         soup = bs(response.content, 'html.parser')
@@ -44,7 +44,7 @@ def fetch_news_data(params, headers, url, db):
         if not naver_news_links:
             params['start'] = str(int(params['start']) + 10)
             print("No NAVER NEWS Platforms")
-            time.sleep(float(random.uniform(0.1, 0.5)))
+            time.sleep(float(random.uniform(0.2, 0.5)))
             flag += 1
             continue
         
@@ -58,7 +58,7 @@ def fetch_news_data(params, headers, url, db):
             
             if article_res.status_code != 200:
                 print("Connection Issue")
-                time.sleep(float(random.uniform(0.1, 0.5)))
+                time.sleep(float(random.uniform(0.2, 0.5)))
                 continue
             
             article_soup = bs(article_res.content, 'html.parser')
@@ -73,11 +73,11 @@ def fetch_news_data(params, headers, url, db):
 
             if params['query'] not in title:
                 print("Query is not in the Title")
-                time.sleep(float(random.uniform(0.1, 0.5)))
+                time.sleep(float(random.uniform(0.2, 0.5)))
                 continue
             
             print("==========================================")
-            
+            print("query: ", args.query)
             print("title: ", title)
             press_select = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_top._LAZY_LOADING_WRAP > a > img.media_end_head_top_logo_img.light_type._LAZY_LOADING._LAZY_LOADING_INIT_HIDE')
             press = press_select['title'] if 'title' in press_select.attrs else 'Title attribute not found'
@@ -111,7 +111,7 @@ def fetch_news_data(params, headers, url, db):
                 'url': link,
             }
             batch.append(tmp)
-            time.sleep(float(random.uniform(0.1, 0.5)))
+            time.sleep(float(random.uniform(0.2, 0.5)))
 
         if batch != []:
             tmp = 0

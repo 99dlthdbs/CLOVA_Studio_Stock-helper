@@ -8,17 +8,17 @@ import time
 import random
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="MongoDB connection parameters")
-    parser.add_argument('--host', type=str, required=True, help='MongoDB host address')
-    parser.add_argument('--port', type=int, required=False, help='MongoDB port number')
-    parser.add_argument('--username', type=str, required=True, help='MongoDB username')
-    parser.add_argument('--password', type=str, default='financial', required=True, help='MongoDB password')
-    parser.add_argument('--database', type=str, required=True, help='MongoDB database name')
-    parser.add_argument('--query', type=str, required=True, help='검색 쿼리')
-    parser.add_argument('--ds', type=str, default=datetime.now().strftime("%Y.%m.%d"), help='시작 일시')
-    parser.add_argument('--de', type=str, default=datetime.now().strftime("%Y.%m.%d"), help='종료 일시')
-    return parser.parse_args()
+# def parse_args():
+#     parser = argparse.ArgumentParser(description="MongoDB connection parameters")
+#     parser.add_argument('--host', type=str, required=True, help='MongoDB host address')
+#     parser.add_argument('--port', type=int, required=False, help='MongoDB port number')
+#     parser.add_argument('--username', type=str, required=True, help='MongoDB username')
+#     parser.add_argument('--password', type=str, default='financial', required=True, help='MongoDB password')
+#     parser.add_argument('--database', type=str, required=True, help='MongoDB database name')
+#     parser.add_argument('--query', type=str, required=True, help='검색 쿼리')
+#     parser.add_argument('--ds', type=str, default=datetime.now().strftime("%Y.%m.%d"), help='시작 일시')
+#     parser.add_argument('--de', type=str, default=datetime.now().strftime("%Y.%m.%d"), help='종료 일시')
+#     return parser.parse_args()
 
 def make_url(base_url, params):
     parts = urlparse(base_url)
@@ -78,7 +78,7 @@ def fetch_news_data(params, headers, url, db):
                 continue
 
             print("==========================================")
-            print("query: ", args.query)
+            print("query: ", args.get("query", "삼성전자"))
             print("title: ", title)
             press_select = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_top._LAZY_LOADING_WRAP > a > img.media_end_head_top_logo_img.light_type._LAZY_LOADING._LAZY_LOADING_INIT_HIDE')
             press = press_select['title'] if 'title' in press_select.attrs else 'Title attribute not found'
@@ -133,19 +133,20 @@ def fetch_news_data(params, headers, url, db):
         time.sleep(float(random.uniform(0.4, 0.6)))
 
 def main(args):
-    start_date = datetime.strptime(args.ds, "%Y.%m.%d")
-    end_date = datetime.strptime(args.de, "%Y.%m.%d") + timedelta(days=1)
+    start = time.time()
+    start_date = datetime.strptime(args.get("ds", datetime.now().strftime("%Y.%m.%d")), "%Y.%m.%d")
+    end_date = datetime.strptime(args.get("de", datetime.now().strftime("%Y.%m.%d")), "%Y.%m.%d") + timedelta(days=1)
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     }
 
-    if args.port == '':
-        client = MongoClient(args.host, username=args.username, password=args.password)
+    if args.get("port", "") == '':
+        client = MongoClient(args.get("host", "mongo.stockhelper-mongodb.store"), username=args.get("username", "root"), password=args.get("password", "financial"))
     else:
-        client = MongoClient(args.host, args.port, username=args.username, password=args.password)
+        client = MongoClient(args.get("host", "mongo.stockhelper-mongodb.store"), port=args.get("port", "27017"),username=args.get("username", "root"), password=args.get("password", "financial"))
 
-    db = client[args.database]
+    db = client[args.get("database", "financial")]
 
     current_date = start_date
     while current_date < end_date:
@@ -157,7 +158,7 @@ def main(args):
             'office_category': '0',
             'office_section_code': '0',
             'service_area': '0',
-            'query': args.query,
+            'query': args.get("query", "삼성전자"),
             'sort': '1',
             'start': '1',
             'where': 'news_tab_api',
@@ -170,8 +171,5 @@ def main(args):
         fetch_news_data(params, headers, url, db)
         current_date = next_date
 
-if __name__ == "__main__":
-    args = parse_args()
-    start = time.time()
-    main(args)
     print("Execution time: ", time.time() - start)
+    
