@@ -63,7 +63,7 @@ def get_user_from_token(token: str, db: Session = Depends(get_db_session)):
     user_id = payload.get("sub")
     if user_id is None:
         raise HTTPException(status_code=400, detail="Invalid token")
-    user = db.query(AuthModels.User).filter(AuthModels.User.username == user_id).first()
+    user = db.query(AuthModels.User).filter(AuthModels.User.email == user_id).first()
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
@@ -77,7 +77,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db_session)):
     payload = decode_access_token(access_token)
     user = (
         db.query(AuthModels.User)
-        .filter(AuthModels.User.username == payload.get("sub"))
+        .filter(AuthModels.User.email == payload.get("sub"))
         .first()
     )
     if user is None:
@@ -93,7 +93,7 @@ def create_user(user: auth_schemas.UserCreate, db: Session = Depends(get_db_sess
     if db_user:
         raise HTTPException(
             status_code=400,
-            detail="Username already exists",
+            detail="Email already exists",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -120,7 +120,7 @@ async def login_for_access_token(
     if not db_user or not verify_password(user.password, db_user.password):
         raise HTTPException(
             status_code=400,
-            detail="Incorrect username or password",
+            detail="Incorrect Email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
