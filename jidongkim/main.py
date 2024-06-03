@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from db.db import engine, get_db_session
 from db.models.BaseModel import Base
+from routes.auth_routes import get_current_user
 import routes
 from routes.chatting_routes import add_chat
 import routes.chatting_routes
@@ -29,7 +30,11 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-origins = ["http://localhost:5174", "http://223.130.140.186:5173","http://223.130.128.222:30002"]
+origins = [
+    "http://localhost:5174",
+    "http://223.130.140.186:5173",
+    "http://223.130.128.222:30002",
+]
 
 app.add_middleware(
     CORSMiddleware,
@@ -53,7 +58,9 @@ async def get():
 
 @app.websocket("/infer")
 async def websocket_endpoint(
-    websocket: WebSocket, db: Session = Depends(get_db_session)
+    websocket: WebSocket,
+    db: Session = Depends(get_db_session),
+    user=Depends(get_current_user),
 ):
     await websocket.accept()
     while True and websocket.client_state == WebSocketState.CONNECTED:
@@ -93,5 +100,9 @@ async def websocket_endpoint(
         print("str:", infer_text)
 
         add_chat(
-            room_id=data["room_id"], question=data["msg"], answer=infer_text, db=db
+            room_id=data["room_id"],
+            question=data["msg"],
+            answer=infer_text,
+            db=db,
+            user=user,
         )

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db_session
 from db.models.ChattingModels import ChattingRoomModel, ChattingModel
+from db.models import AuthModels
 from routes.auth_routes import get_current_user
 from schemas.chatting_schemas import ChattingDisplay
 
@@ -53,13 +54,13 @@ def add_chat(
     room_id: int,
     question: str,
     answer: str,
-    db: Session = Depends(get_db_session),
-    user=Depends(get_current_user),
+    db: Session,
+    user: AuthModels.User,
 ):
     room = db.query(ChattingRoomModel).filter(ChattingRoomModel.id == room_id).first()
 
     if room.owner_id != user.id:
-        raise HTTPException(status_code=403, detail="Forbidden")
+        return "Not authorized"
 
     if not room:
         return "Room not found"
