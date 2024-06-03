@@ -2,10 +2,10 @@ import os
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import JSONResponse
+import jwt
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from datetime import timedelta, datetime
-from jose import JWTError, jwt
 from typing import Optional
 
 import bcrypt

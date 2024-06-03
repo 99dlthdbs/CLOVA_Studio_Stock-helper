@@ -7,10 +7,10 @@ name = "pypi"
 fastapi = "*"
 sqlalchemy = "*"
 openai = "*"
-python-jose = "*"
 passlib = "*"
 bcrypt = "*"
 uvicorn = {extras = ["standard"], version = "*"}
+pyjwt = "*"
 
 [dev-packages]
 
