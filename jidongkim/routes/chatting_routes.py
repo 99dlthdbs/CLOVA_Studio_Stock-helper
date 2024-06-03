@@ -3,14 +3,22 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db_session
 from db.models.ChattingModels import ChattingRoomModel, ChattingModel
+from jidongkim.routes.auth_routes import get_current_user
 from schemas.chatting_schemas import ChattingDisplay
 
 router = APIRouter(prefix="/chatting", tags=["chatting"])
 
 
 @router.get("/{room_id}", response_model=list[ChattingDisplay])
-def get_chatting(room_id: int, db: Session = Depends(get_db_session)):
-    room = db.query(ChattingRoomModel).filter(ChattingRoomModel.id == room_id).first()
+def get_chatting(
+    room_id: int, db: Session = Depends(get_db_session), user=Depends(get_current_user)
+):
+    room = (
+        db.query(ChattingRoomModel)
+        .filter(ChattingRoomModel.owner_id == user.id)
+        .filter(ChattingRoomModel.id == room_id)
+        .first()
+    )
 
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
@@ -23,8 +31,15 @@ def get_chatting(room_id: int, db: Session = Depends(get_db_session)):
 
 
 @router.get("/{room_id}/latest", response_model=ChattingDisplay)
-def get_lastest_chatting(room_id: int, db: Session = Depends(get_db_session)):
-    room = db.query(ChattingRoomModel).filter(ChattingRoomModel.id == room_id).first()
+def get_lastest_chatting(
+    room_id: int, db: Session = Depends(get_db_session), user=Depends(get_current_user)
+):
+    room = (
+        db.query(ChattingRoomModel)
+        .filter(ChattingRoomModel.owner_id == user.id)
+        .filter(ChattingRoomModel.id == room_id)
+        .first()
+    )
 
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
@@ -34,8 +49,17 @@ def get_lastest_chatting(room_id: int, db: Session = Depends(get_db_session)):
     return chat_list[-1]
 
 
-def add_chat(room_id: int, question: str, answer: str, db: Session):
+def add_chat(
+    room_id: int,
+    question: str,
+    answer: str,
+    db: Session = Depends(get_db_session),
+    user=Depends(get_current_user),
+):
     room = db.query(ChattingRoomModel).filter(ChattingRoomModel.id == room_id).first()
+
+    if room.owner_id != user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     if not room:
         return "Room not found"
