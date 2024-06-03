@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db_session
 from db.models.ChattingModels import ChattingRoomModel, ChattingModel
-from jidongkim.routes.auth_routes import get_current_user
+from routes.auth_routes import get_current_user
 from schemas.chatting_schemas import ChattingDisplay
 
 router = APIRouter(prefix="/chatting", tags=["chatting"])

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from db.db import get_db_session
 from db.models.ChattingModels import ChattingRoomModel
-from jidongkim.routes.auth_routes import get_current_user
+from routes.auth_routes import get_current_user
 from schemas.room_schemas import RoomDisplay, RoomCreate
 
 router = APIRouter(prefix="/room", tags=["room"])
