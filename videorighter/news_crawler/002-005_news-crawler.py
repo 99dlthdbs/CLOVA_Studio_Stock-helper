@@ -26,27 +26,40 @@ def make_url(base_url, params):
     return urlunparse(parts)
 
 def fetch_news_data(params, headers, url, db):
-    flag = 0
-    while flag < 30:
-        print(flag)
+    duplicate_flag = 0
+    no_news_flag = 0
+
+    while duplicate_flag < 30:
         naver_news_links = []
         batch = []
 
         new_url = make_url(url, params)
-        response = requests.get(new_url, headers=headers)
+
+        retry_count = 3
+        for i in range(retry_count):
+            try:
+                response = requests.get(new_url, headers=headers)
+                break
+            except requests.exceptions.Timeout:
+                if i < retry_count - 1:
+                    print("Time out. Reconnecting...")
+            
         if response.status_code != 200:
             print("Connection Issue")
             time.sleep(float(random.uniform(0.3, 0.4)))
             continue
 
         soup = bs(response.content, 'html.parser')
+
         naver_news_links = [a['href'][2:-2] for a in soup.find_all('a', string='네이버뉴스') if a['href']]
 
         if not naver_news_links:
             params['start'] = str(int(params['start']) + 10)
             print("No NAVER NEWS Platforms")
             time.sleep(float(random.uniform(0.3, 0.4)))
-            flag += 1
+            no_news_flag += 1
+            if no_news_flag > 2:
+                break
             continue
 
         for link in naver_news_links:
@@ -54,8 +67,15 @@ def fetch_news_data(params, headers, url, db):
 
             if 'sports' in link or 'entertain' in link:
                 continue
-
-            article_res = requests.get(link)
+            
+            retry_count = 3
+            for i in range(retry_count):
+                try:
+                    article_res = requests.get(link, headers=headers)
+                    break
+                except requests.exceptions.Timeout:
+                    if i < retry_count - 1:
+                        print("Time out. Reconnecting...")
 
             if article_res.status_code != 200:
                 print("Connection Issue")
@@ -64,13 +84,7 @@ def fetch_news_data(params, headers, url, db):
 
             article_soup = bs(article_res.content, 'html.parser')
 
-            try:
-                title = article_soup.select_one('#title_area > span').get_text(strip=True)
-            except:
-                print(article_soup.select_one('#title_area > span'))
-                article_res = requests.get(link)
-                article_soup = bs(article_res.content, 'html.parser')
-                title = article_soup.select_one('#title_area > span').get_text(strip=True)
+            title = article_soup.select_one('#title_area > span').get_text(strip=True)
 
             if params['query'] not in title:
                 print("Query is not in the Title")
@@ -83,6 +97,8 @@ def fetch_news_data(params, headers, url, db):
             press_select = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_top._LAZY_LOADING_WRAP > a > img.media_end_head_top_logo_img.light_type._LAZY_LOADING._LAZY_LOADING_INIT_HIDE')
             press = press_select['title'] if 'title' in press_select.attrs else 'Title attribute not found'
             print("link: ", link)
+            origin = article_soup.find("a", string='기사원문')['href']
+            print("origin: ", origin)
             print("press: ", press)
             date = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_info.nv_notrans > div.media_end_head_info_datestamp > div:nth-child(1) > span')['data-date-time']
             print("date: ", date)
@@ -102,14 +118,14 @@ def fetch_news_data(params, headers, url, db):
 
             print("==========================================")
             tmp = {
-                'news_date': date.split(" ")[0],
-                'news_time': date.split(" ")[1],
+                'timestamp': datetime.strptime(date, "%Y-%m-%d %H:%M:%S"),
                 'query': params['query'],
                 'title': title,
                 'press': press,
                 'summary': summary,
                 'content': content,
                 'url': link,
+                'origin': origin
             }
             batch.append(tmp)
             time.sleep(float(random.uniform(0.3, 0.4)))
@@ -123,10 +139,10 @@ def fetch_news_data(params, headers, url, db):
 
             if new_batch:
                 db.news.insert_many(new_batch)
-                flag = 0
+                duplicate_flag = 0
             else:
                 print("All batch data is Duplicated")
-                flag += 1
+                duplicate_flag += 1
 
         print("start: ", params['start'])
         params['start'] = str(int(params['start']) + 10)
@@ -157,11 +173,12 @@ def main(args):
             'office_category': '0',
             'office_section_code': '0',
             'service_area': '0',
+            'pd': '7',
             'query': args.query,
-            'sort': '1',
+            'sort': '2',
             'start': '1',
             'where': 'news_tab_api',
-            'nso': f'so:dd,p:from{current_date.strftime("%Y%m%d")}to{current_date.strftime("%Y%m%d")}',
+            'nso': f'so:dd,p:1h,a:all',
             'ds': current_date.strftime("%Y.%m.%d"),
             'de': current_date.strftime("%Y.%m.%d")
         }
