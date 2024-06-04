@@ -15,9 +15,8 @@ const Login = () => {
 
   const onClickLogInHandler = useCallback(async () => {
     const result = await login(userInfo);
-    console.log(result);
 
-    if (result.access_token) {
+    if (result.email) {
       navigate("/chat");
     }
   }, [navigate, userInfo]);

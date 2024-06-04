@@ -3,18 +3,24 @@ import Button from "@/components/common/Button";
 import styled from "@emotion/styled";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useState } from "react";
+import { signup } from "@/apis/auth/signup";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState({
-    name: "",
+    nickname: "",
     email: "",
     password: "",
   });
 
-  const onClickSignupHandler = useCallback(() => {
-    navigate("/login");
-  }, [navigate]);
+  const onClickSignupHandler = useCallback(async () => {
+    const result = await signup(userInfo);
+    if (result.id) {
+      alert("회원가입 성공");
+
+      navigate("/login");
+    }
+  }, [userInfo, navigate]);
 
   const onClickLogInHandler = useCallback(() => {
     navigate("/login");
@@ -44,13 +50,14 @@ const Signup = () => {
         setUserInfo((prev) => {
           return {
             ...prev,
-            name: value,
+            nickname: value,
           };
         });
       }
     },
     [],
   );
+
   return (
     <SignupContainer>
       <TitleText>Signup</TitleText>
@@ -58,7 +65,7 @@ const Signup = () => {
         <Input
           placeholder={"name"}
           type={"string"}
-          value={userInfo.name}
+          value={userInfo.nickname}
           onChange={onChangeValueHandler}
         />
         <Input
