@@ -133,6 +133,8 @@ async def login_for_access_token(
         key="access_token",
         value=f"Bearer {access_token}",
         httponly=True,
+        secure=True,
+        samesite="none",
     )
     # secure=False,
     # samesite="none",
