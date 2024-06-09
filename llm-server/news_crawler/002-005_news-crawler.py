@@ -6,6 +6,7 @@ from pymongo import MongoClient
 import argparse
 import time
 import random
+import pandas as pd
 
 
 def parse_args():
@@ -29,7 +30,7 @@ def fetch_news_data(params, headers, url, db):
     duplicate_flag = 0
     no_news_flag = 0
 
-    while duplicate_flag < 30:
+    while duplicate_flag < 10:
         naver_news_links = []
         batch = []
 
@@ -56,11 +57,12 @@ def fetch_news_data(params, headers, url, db):
         if not naver_news_links:
             params['start'] = str(int(params['start']) + 10)
             print("No NAVER NEWS Platforms")
-            time.sleep(float(random.uniform(0.3, 0.4)))
             no_news_flag += 1
+            time.sleep(float(random.uniform(0.3, 0.4)))
             if no_news_flag > 2:
                 break
-            continue
+            else:
+                continue
 
         for link in naver_news_links:
             print("link: ", link)
@@ -173,9 +175,8 @@ def main(args):
             'office_category': '0',
             'office_section_code': '0',
             'service_area': '0',
-            'pd': '7',
             'query': args.query,
-            'sort': '2',
+            'sort': '1',
             'start': '1',
             'where': 'news_tab_api',
             'nso': f'so:dd,p:1h,a:all',
@@ -186,9 +187,16 @@ def main(args):
         url = 'https://s.search.naver.com/p/newssearch/search.naver'
         fetch_news_data(params, headers, url, db)
         current_date = next_date
+    
+    client.close()
 
 if __name__ == "__main__":
     args = parse_args()
     start = time.time()
-    main(args)
+
+    jongmok = pd.read_csv('./UpjongRank_Excel.csv')
+    jongmok_list = jongmok['종목명']
+    for j in jongmok_list:
+        args.query = j
+        main(args)
     print("Execution time: ", time.time() - start)

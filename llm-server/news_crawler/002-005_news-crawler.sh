@@ -1,4 +1,4 @@
-python 002-004_news-crawler.py \
+python 002-005_news-crawler.py \
     --host mongo.stockhelper-mongodb.store \
     --username root \
     --password financial \

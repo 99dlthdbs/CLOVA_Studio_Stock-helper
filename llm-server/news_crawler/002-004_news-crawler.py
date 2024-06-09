@@ -6,6 +6,7 @@ from pymongo import MongoClient
 import argparse
 import time
 import random
+import pandas as pd
 
 
 def parse_args():
@@ -29,7 +30,7 @@ def fetch_news_data(params, headers, url, db):
     duplicate_flag = 0
     no_news_flag = 0
 
-    while duplicate_flag < 30:
+    while duplicate_flag < 10:
         naver_news_links = []
         batch = []
 
@@ -55,12 +56,13 @@ def fetch_news_data(params, headers, url, db):
 
         if not naver_news_links:
             params['start'] = str(int(params['start']) + 10)
-            print("No NAVER NEWS Platforms")
+            print("No NAVER NEWS Platforms", no_news_flag)
             time.sleep(float(random.uniform(0.3, 0.4)))
             no_news_flag += 1
             if no_news_flag > 2:
                 break
-            continue
+            else:
+                continue
 
         for link in naver_news_links:
             print("link: ", link)
@@ -97,7 +99,11 @@ def fetch_news_data(params, headers, url, db):
             press_select = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_top._LAZY_LOADING_WRAP > a > img.media_end_head_top_logo_img.light_type._LAZY_LOADING._LAZY_LOADING_INIT_HIDE')
             press = press_select['title'] if 'title' in press_select.attrs else 'Title attribute not found'
             print("link: ", link)
-            origin = article_soup.find("a", string='기사원문')['href']
+            try:
+                origin = article_soup.find("a", string='기사원문')['href']
+            except TypeError:
+                print("There isn't original news url")
+                continue
             print("origin: ", origin)
             print("press: ", press)
             date = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_info.nv_notrans > div.media_end_head_info_datestamp > div:nth-child(1) > span')['data-date-time']
@@ -141,7 +147,7 @@ def fetch_news_data(params, headers, url, db):
                 db.news.insert_many(new_batch)
                 duplicate_flag = 0
             else:
-                print("All batch data is Duplicated")
+                print("All batch data is Duplicated", duplicate_flag)
                 duplicate_flag += 1
 
         print("start: ", params['start'])
@@ -149,8 +155,8 @@ def fetch_news_data(params, headers, url, db):
         time.sleep(float(random.uniform(0.3, 0.4)))
 
 def main(args):
-    start_date = datetime.strptime(args.ds, "%Y.%m.%d")
-    end_date = datetime.strptime(args.de, "%Y.%m.%d") + timedelta(days=1)
+    start_date = datetime.strptime(args.ds, "%Y.%m.%d") - timedelta(days=1)
+    end_date = datetime.strptime(args.de, "%Y.%m.%d") 
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
@@ -163,9 +169,9 @@ def main(args):
 
     db = client[args.database]
 
-    current_date = start_date
-    while current_date < end_date:
-        next_date = current_date + timedelta(days=1)
+    current_date = end_date
+    while current_date > start_date:
+        next_date = current_date - timedelta(days=1)
         params = {
             'filed': '0',
             'is_dts': '0',
@@ -189,5 +195,13 @@ def main(args):
 if __name__ == "__main__":
     args = parse_args()
     start = time.time()
-    main(args)
+
+    jongmok = pd.read_csv('./UpjongRank_Excel.csv')
+    # jongmok_list = jongmok['종목명'][364:]
+    jongmok_list = jongmok['종목명']
+    
+    for j in jongmok_list:
+        args.query = j
+        main(args)
+    
     print("Execution time: ", time.time() - start)

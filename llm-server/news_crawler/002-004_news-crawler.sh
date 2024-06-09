@@ -3,9 +3,9 @@ python 002-004_news-crawler.py \
     --username root \
     --password financial \
     --database financial \
-    --query KB금융 \
-    --ds '2024.05.28' \
-    --de '2024.06.03'
+    --query 삼성전자 \
+    --ds '2024.06.05' \
+    --de '2024.06.09'
 
 # https://comp.fnguide.com/SVO2/ASP/SVD_UJRank.asp?pGB=1&gicode=A005930&cID=&MenuYn=Y&ReportGB=&NewMenuID=301&stkGb=701
 
