@@ -1,5 +1,5 @@
 import SendIcon from "@/assets/icon-paper-plane.svg?react";
-import { ChattingTypes } from "@/types/ChattingTypes";
+import { ChattingTypes } from "@/@types/ChattingTypes";
 import styled from "@emotion/styled";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -52,7 +52,7 @@ const ChatInput = () => {
           setChattingList(temp);
 
           connectWebSockect(text, roomId || roomid, res.token);
-        })
+        });
       });
     } else {
       getChatToken(roomId).then((res) => {
