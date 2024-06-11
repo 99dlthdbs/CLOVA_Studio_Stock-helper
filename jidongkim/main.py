@@ -119,6 +119,8 @@ async def websocket_endpoint(
 
                 msgs = []
 
+                print("MSGS", msgs)
+
                 for item in room_info.chats:
                     msgs.append(
                         {
