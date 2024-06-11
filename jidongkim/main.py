@@ -3,9 +3,10 @@ from datetime import datetime
 import json
 import os
 
-from fastapi import FastAPI, WebSocket, Depends
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, WebSocket, Depends
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi.websockets import WebSocketState
 from fastapi.middleware.cors import CORSMiddleware
 from openai import OpenAI
@@ -51,12 +52,13 @@ app.include_router(routes.chatting_routes)
 app.include_router(routes.room_routes)
 app.include_router(routes.auth_routes)
 
+# public path
+app.mount("/assets", StaticFiles(directory="./dist/assets"), name="assets")
 
-@app.get("/")
-async def get():
-    with open(os.path.join(os.path.dirname(__file__), "templates", "test.html")) as fh:
-        data = fh.read()
-    return HTMLResponse(content=data, media_type="text/html")
+
+@app.get("/{rest_of_path:path}", response_class=HTMLResponse)
+async def web():
+    return FileResponse("./dist/index.html", media_type="text/html")
 
 
 @app.websocket("/infer")

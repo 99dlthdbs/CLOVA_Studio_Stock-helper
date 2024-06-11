@@ -9,10 +9,10 @@ from db.models.ChattingModels import ChattingRoomModel
 from routes.auth_routes import get_current_user
 from schemas.room_schemas import RoomDisplay, RoomCreate
 
-router = APIRouter(prefix="/room", tags=["room"])
+router = APIRouter(prefix="/api/room", tags=["room"])
 
 
-@router.get("/", response_model=List[RoomDisplay])
+@router.get("", response_model=List[RoomDisplay])
 def read_rooms(
     skip: int = 0,
     limit: int = 100,
@@ -30,7 +30,7 @@ def read_rooms(
     return rooms
 
 
-@router.post("/", response_model=RoomDisplay)
+@router.post("", response_model=RoomDisplay)
 def create_room(
     room: RoomCreate,
     db: Session = Depends(get_db_session),

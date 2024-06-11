@@ -9,7 +9,7 @@ from schemas.auth_schemas import ChatToken
 from routes.auth_routes import create_access_token, get_current_user
 from schemas.chatting_schemas import ChattingDisplay
 
-router = APIRouter(prefix="/chatting", tags=["chatting"])
+router = APIRouter(prefix="/api/chatting", tags=["chatting"])
 
 
 @router.get("/token/{room_id}", response_model=ChatToken)
