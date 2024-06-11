@@ -11,6 +11,7 @@ passlib = "*"
 bcrypt = "*"
 uvicorn = {extras = ["standard"], version = "*"}
 pyjwt = "*"
+requests = "*"
 
 [dev-packages]
 

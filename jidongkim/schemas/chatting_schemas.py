@@ -9,6 +9,8 @@ class ChattingDisplay(BaseModel):
     chat_idx: int
     question: str
     answer: str
+    card_data: str
+    rag_data: str
     created_at: datetime
     updated_at: datetime
     deleted_at: Optional[datetime]

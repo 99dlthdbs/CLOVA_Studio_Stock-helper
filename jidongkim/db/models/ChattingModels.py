@@ -22,4 +22,6 @@ class ChattingModel(BaseModel):
     chat_idx = Column(Integer, nullable=False)
     question = Column(String, nullable=True)
     answer = Column(String, nullable=True)
+    card_data = Column(String, nullable=True)
+    rag_data = Column(String, nullable=True)
     room = relationship("ChattingRoomModel", backref="chatting")

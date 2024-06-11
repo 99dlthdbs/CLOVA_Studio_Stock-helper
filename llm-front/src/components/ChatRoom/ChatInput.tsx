@@ -1,5 +1,5 @@
+import { CardType, ChattingTypes } from "@/@types/ChattingTypes";
 import SendIcon from "@/assets/icon-paper-plane.svg?react";
-import { ChattingTypes } from "@/@types/ChattingTypes";
 import styled from "@emotion/styled";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -16,6 +16,8 @@ const ChatInput = () => {
 
   const [chattingList, setChattingList] =
     useAtom<ChattingTypes[]>(chattingListAtoms);
+
+  const cardList: CardType[] = [];
 
   let temp = useMemo(() => {
     return [...chattingList];
@@ -90,12 +92,26 @@ const ChatInput = () => {
     };
 
     ws.onmessage = (event) => {
-      temp = addResponseData(
-        temp,
-        event.data,
-        temp[temp.length - 1]!.id.toString(),
-      );
-      setChattingList(temp);
+      const { data } = event;
+      console.log(data);
+
+      // if data start with #$#$#
+      if (data.startsWith("#$#$#")) {
+        const res = data.replaceAll("#$#$#", "");
+        const splitted = res.split("####");
+        const [title, content, url] = splitted;
+
+        cardList.push({ title, content, url });
+
+      } else {
+        temp = addResponseData(
+          temp,
+          data,
+          temp[temp.length - 1]!.id.toString(),
+        );
+        setChattingList(temp);
+      }
+
     };
 
     ws.onclose = () => {
@@ -134,6 +150,7 @@ const ChatInput = () => {
         return {
           ...e,
           answer: e.answer + eventStreamText,
+          cards: cardList,
         };
       } else return e;
     });

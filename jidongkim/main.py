@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime
 import json
 import os
+import requests
 
 from fastapi import FastAPI, Request, WebSocket, Depends, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
@@ -119,8 +120,6 @@ async def websocket_endpoint(
 
                 msgs = []
 
-                print("MSGS", msgs)
-
                 for item in room_info.chats:
                     msgs.append(
                         {
@@ -142,30 +141,121 @@ async def websocket_endpoint(
                     }
                 )
 
-                stream = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=msgs,
+                print("MSGS", msgs)
+
+                # stream = client.chat.completions.create(
+                #     model="gpt-3.5-turbo",
+                #     messages=msgs,
+                #     stream=True,
+                # )
+
+                r = requests.Session()
+
+                stream = r.post(
+                    "http://10.0.10.74:21002/stock/chat",
+                    json=msgs,
                     stream=True,
                 )
 
+                print(stream.status_code)
+
                 infer_text = ""
 
-                for chunk in stream:
-                    if chunk.choices[0].delta.content is not None:
-                        current_content = chunk.choices[0].delta.content
-                        infer_text += current_content
+                toggle_read_rag = False
+                toggle_read_card_data = False
 
-                        await websocket.send_text(current_content)
+                rag_data = ""
+                card_data = []
+                card_data_str = ""
 
-                        await asyncio.sleep(0.01)
-                add_chat(
-                    room_id=data["room_id"],
-                    question=data["msg"],
-                    answer=infer_text,
-                    db=db,
-                    user=user,
-                )
+                commands = ""
+                send_text = ""
+
+                for line in stream.iter_lines():
+                    if line:
+                        text = line.decode("utf-8")
+                        parsing_text = commands + text
+
+                        print(text)
+                        print(len(text), text[:5])
+
+                        while len(parsing_text) > 0:
+                            if "$#$#$" in parsing_text:
+                                pos = parsing_text.find("$#$#$")
+                                before = parsing_text[:pos]
+                                after = parsing_text[pos + 5 :]
+                                if toggle_read_rag:
+                                    toggle_read_rag = False
+                                    rag_data += before
+                                    parsing_text = after
+                                else:
+                                    toggle_read_rag = True
+                                    rag_data += after
+                                    parsing_text = parsing_text.replace(
+                                        "$#$#$" + after, ""
+                                    )
+                                continue
+
+                            elif "#$#$#" in parsing_text:
+                                pos = parsing_text.find("#$#$#")
+                                before = parsing_text[:pos]
+                                after = parsing_text[pos + 5 :]
+                                if toggle_read_card_data:
+                                    toggle_read_card_data = False
+                                    card_data_str += before
+                                    await websocket.send_text(
+                                        "#$#$#" + card_data_str + "#$#$#"
+                                    )
+                                    await asyncio.sleep(0.01)
+                                    card_data.append(card_data_str)
+                                    parsing_text = after
+                                else:
+                                    toggle_read_card_data = True
+                                    card_data_str = ""
+                                    parsing_text = after
+                                continue
+
+                            elif toggle_read_rag:
+                                rag_data += parsing_text
+                                parsing_text = ""
+                                continue
+
+                            elif toggle_read_card_data:
+                                card_data_str += parsing_text
+                                parsing_text = ""
+                                continue
+
+                            else:
+                                infer_text += parsing_text
+                                await websocket.send_text(parsing_text)
+                                await asyncio.sleep(0.01)
+                                parsing_text = ""
+
+                # for chunk in stream:
+                #     if chunk.choices[0].delta.content is not None:
+                #         current_content = chunk.choices[0].delta.content
+                #         infer_text += current_content
+
+                #         await websocket.send_text(current_content)
+
+                #         await asyncio.sleep(0.01)
+                print("RAG", rag_data)
+                print("CARD", card_data)
+                print("INFER", infer_text)
+                if infer_text == "Internal Server Error":
+                    pass
+                else:
+                    add_chat(
+                        room_id=data["room_id"],
+                        question=data["msg"],
+                        answer=infer_text,
+                        db=db,
+                        user=user,
+                        card_data=card_data,
+                        rag_data=rag_data,
+                    )
             except Exception as e:
-                break
+                print(e)
     except WebSocketDisconnect:
+        print("DISCONNECTED")
         websocket.close()

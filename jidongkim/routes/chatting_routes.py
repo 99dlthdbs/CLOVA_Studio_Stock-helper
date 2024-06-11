@@ -87,6 +87,8 @@ def add_chat(
     answer: str,
     db: Session,
     user: AuthModels.User,
+    card_data: list[str] = None,
+    rag_data: str = None,
 ):
     room = db.query(ChattingRoomModel).filter(ChattingRoomModel.id == room_id).first()
 
@@ -97,8 +99,16 @@ def add_chat(
         return "Room not found"
 
     chat_len = len(room.chats) + 1
+
+    card_data_str = "%T%T%".join(card_data) if card_data else None
+
     chat = ChattingModel(
-        room_id=room_id, chat_idx=chat_len, question=question, answer=answer
+        room_id=room_id,
+        chat_idx=chat_len,
+        question=question,
+        answer=answer,
+        card_data=card_data_str,
+        rag_data=rag_data,
     )
 
     db.add(chat)
