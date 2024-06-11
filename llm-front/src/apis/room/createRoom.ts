@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const createRoom = async () => {
-  const res = await axios.post("/room", {
+  const res = await axios.post("/api/room", {
     name: "chat room 12",
   });
 

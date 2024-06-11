@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Button from "@/components/common/Button";
 import Input from "@/components/common/Input";
 import { login } from "@/apis/auth/login";
-import { logInUserInfoType } from "@/types/AuthTypes";
+import { logInUserInfoType } from "@/@types/AuthTypes";
 
 const Login = () => {
   const navigate = useNavigate();

@@ -1,17 +1,15 @@
 import styled from "@emotion/styled";
 import UserIcon from "@/assets/icon-user.svg?react";
-import { useMemo } from "react";
-import { getMe } from "@/apis/auth/getMe";
 
 interface UserInfoProps {
   name: string;
 }
 
 const UserInfo = ({ name }: UserInfoProps) => {
-  const me = useMemo(async () => {
-    const result = await getMe();
-    console.log(result);
-  }, []);
+  // const me = useMemo(async () => {
+  //   const result = await getMe();
+  //   console.log(result);
+  // }, []);
 
   return (
     <UserInfoContainer>
