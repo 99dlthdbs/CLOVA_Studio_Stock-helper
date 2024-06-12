@@ -3,6 +3,9 @@ import axios from "axios";
 
 const parsing_cards = (data: string) => {
   const cardList: CardType[] = [];
+  console.log("DATA", data)
+  if (!!!data) return cardList;
+
   const splitted = data.split("%T%T%");
 
   splitted.forEach((e) => {
