@@ -34,6 +34,9 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+llm_server_url = os.environ.get("LLM_SERVER")
+llm_server_port = os.environ.get("LLM_PORT")
+
 origins = [
     "http://localhost:5173",
     "http://localhost:5174",
@@ -152,7 +155,7 @@ async def websocket_endpoint(
                 r = requests.Session()
 
                 stream = r.post(
-                    "http://10.0.10.74:21002/stock/chat",
+                    f"{llm_server_url}:{llm_server_port}/stock/chat",
                     json=msgs,
                     stream=True,
                 )
