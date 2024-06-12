@@ -37,6 +37,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 llm_server_url = os.environ.get("LLM_SERVER")
 llm_server_port = os.environ.get("LLM_SERVER_PORT")
 
+print(llm_server_url, llm_server_port)
 
 origins = [
     "http://localhost:5173",
