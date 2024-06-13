@@ -1,6 +1,7 @@
 import styled from "@emotion/styled";
 import Lottie from "react-lottie";
 import loadingData from "@/assets/loading-animation.json";
+import MarkDownRenderer from "@/components/common/MarkdownRenderer";
 
 interface MessageProps {
   role: string;
@@ -25,7 +26,7 @@ const Message = ({ role, content }: MessageProps) => {
       <ContentContainer>
         <ContentText>
           {content ? (
-            content
+            <MarkDownRenderer text={content} />
           ) : (
             <IconConatainer>
               <Lottie

@@ -132,10 +132,10 @@ const OverlayBox = styled.div<ChatListItemContainerProps>`
   height: 44px;
 
   border-radius: 8px;
-  background-color: ${({ isSelected }) =>
+  background: ${({ isSelected }) =>
     isSelected
-      ? "linear-gradient(90deg, rgba(54, 54, 54, 0) 0%, #181422 76.4%)"
-      : "inherit"};
+      ? "linear-gradient(90deg, rgba(54, 54, 54, 0) 0%, #352f44 76.4%)"
+      : "linear-gradient(90deg, rgba(54, 54, 54, 0) 0%, #181422 76.4%)"};
 `;
 
 const MoreContainer = styled.div`

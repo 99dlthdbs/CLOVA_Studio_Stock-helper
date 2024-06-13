@@ -52,16 +52,16 @@ const Chat = () => {
                   <Message role={"user"} content={e.question} />
                   <Message role={"assistant"} content={e.answer} />
                   <NewsCardDiv>
-                    {
-                      e.cards && e.cards.map((card, idx) => (
-                        <NewsCard onClick={
-                          () => location.href = card.url
-                        }>
+                    {e.cards &&
+                      e.cards.map((card, index) => (
+                        <NewsCard
+                          key={index}
+                          onClick={() => (location.href = card.url)}
+                        >
                           <NewsCardTitle>{card.title}</NewsCardTitle>
                           <NewsCardContent>{card.content}</NewsCardContent>
                         </NewsCard>
-                      ))
-                    }
+                      ))}
                   </NewsCardDiv>
                 </Fragment>
               );
@@ -90,28 +90,31 @@ const NewsCard = styled.div`
   background: rgba(255, 255, 255, 0.1);
   padding: 1rem;
   border-radius: 0.5rem;
+
   :hover {
     background: rgba(255, 255, 255, 0.2);
     cursor: pointer;
   }
-`
+`;
 
 const NewsCardTitle = styled.div`
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-`
+`;
 
 const NewsCardContent = styled.div`
   font-size: 0.75rem;
   font-weight: 400;
-`
+`;
 
 const NewsCardDiv = styled.div`
   display: flex;
-  overflow-x: scroll;
+  overflow-x: auto;
   height: fit-content;
   gap: 1rem;
+  
+  scrollbar-width: none;
 `;
 
 const ChatContainer = styled.div`

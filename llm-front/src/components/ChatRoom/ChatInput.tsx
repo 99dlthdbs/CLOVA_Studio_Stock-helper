@@ -47,7 +47,7 @@ const ChatInput = () => {
 
   const sendMessage = (roomId: string | null | undefined) => {
     if (!roomId) {
-      createRoom().then((e) => {
+      createRoom(text).then((e) => {
         getChatToken(e.id).then((res) => {
           const roomid = e.id;
           temp = addRequestData(temp, text, roomId || roomid);
@@ -85,7 +85,8 @@ const ChatInput = () => {
   );
 
   const connectWebSockect = (text: string, roomId: string, token: string) => {
-    const ws = new WebSocket(`ws://${import.meta.env.VITE_API_URL}/infer`);
+    const prefix = import.meta.env.DEV ? "ws://" : "wss://";
+    const ws = new WebSocket(`${prefix}${import.meta.env.VITE_API_URL}/infer`);
     ws.onopen = () => {
       const sendData = { msg: text, room_id: roomId, token: token };
       ws.send(JSON.stringify(sendData));
@@ -102,7 +103,6 @@ const ChatInput = () => {
         const [title, content, url] = splitted;
 
         cardList.push({ title, content, url });
-
       } else {
         temp = addResponseData(
           temp,
@@ -111,7 +111,6 @@ const ChatInput = () => {
         );
         setChattingList(temp);
       }
-
     };
 
     ws.onclose = () => {

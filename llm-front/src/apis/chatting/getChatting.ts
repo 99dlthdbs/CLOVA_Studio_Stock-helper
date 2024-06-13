@@ -3,8 +3,7 @@ import axios from "axios";
 
 const parsing_cards = (data: string) => {
   const cardList: CardType[] = [];
-  console.log("DATA", data)
-  if (!!!data) return cardList;
+  if (!data) return cardList;
 
   const splitted = data.split("%T%T%");
 
@@ -14,23 +13,18 @@ const parsing_cards = (data: string) => {
   });
 
   return cardList;
-}
+};
 
 export const getChatting = async (room_id: string) => {
   const res = await axios.get<ChattingTypes[]>(`/api/chatting/${room_id}`);
   const { data } = res;
 
-  const new_data = data.map((e) => {
+  return data.map((e) => {
     const cards = parsing_cards(e.card_data);
-    console.log(e.card_data);
+
     return {
       ...e,
       cards,
     };
   });
-
-
-  console.log(new_data);
-
-  return new_data;
 };

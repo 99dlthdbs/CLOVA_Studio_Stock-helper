@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export const createRoom = async () => {
+export const createRoom = async (title: string) => {
   const res = await axios.post("/api/room", {
-    name: "chat room 12",
+    name: title.slice(0, 20),
   });
 
   return res.data;
