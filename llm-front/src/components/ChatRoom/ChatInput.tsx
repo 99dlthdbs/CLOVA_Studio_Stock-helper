@@ -94,7 +94,6 @@ const ChatInput = () => {
 
     ws.onmessage = (event) => {
       const { data } = event;
-      console.log(data);
 
       // if data start with #$#$#
       if (data.startsWith("#$#$#")) {
