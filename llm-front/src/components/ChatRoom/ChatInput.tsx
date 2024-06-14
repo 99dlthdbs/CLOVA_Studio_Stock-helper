@@ -102,92 +102,93 @@ const ChatInput = () => {
         const [title, content, url] = splitted;
 
         cardList.push({ title, content, url });
-        if (data.startsWith("!@!@!")) {
-          const res = data.replaceAll("!@!@!", "");
-          const splitted = res.split("####");
-          const [date, company, code, analysis, callSign, finance, targetFee, endFee] = splitted;
+      }
+      else if (data.startsWith("!@!@!")) {
+        const res = data.replaceAll("!@!@!", "");
+        const splitted = res.split("####");
+        const [date, company, code, analysis, callSign, finance, targetFee, endFee] = splitted;
 
-          cardList.push({ title: "", content: "", url: "#" });
-        } else {
-          temp = addResponseData(
-            temp,
-            data,
-            temp[temp.length - 1]!.id.toString(),
-          );
-          setChattingList(temp);
-        }
-      };
-
-      ws.onclose = () => {
-        navigate(`/chat/${roomId}`);
-        ws.close();
-      };
+        cardList.push({ title: "", content: "", url: "#" });
+      } else {
+        temp = addResponseData(
+          temp,
+          data,
+          temp[temp.length - 1]!.id.toString(),
+        );
+        setChattingList(temp);
+      }
     };
 
-    const addRequestData = (
-      list: ChattingTypes[],
-      requestText: string,
-      roomId: string,
-    ) => {
-      return [
-        ...list,
-        {
-          id: uuidv4(),
-          room_id: roomId,
-          chat_idx: uuidv4(),
-          question: requestText,
-          answer: "",
-          created_at: new Date().toDateString(),
-          updated_at: new Date().toDateString(),
-          deleted_at: null,
-        },
-      ] as ChattingTypes[];
+    ws.onclose = () => {
+      navigate(`/chat/${roomId}`);
+      ws.close();
     };
-
-    const addResponseData = (
-      list: ChattingTypes[],
-      eventStreamText: string,
-      messageId: string,
-    ) => {
-      return list.map((e) => {
-        if (e.id.toString() === messageId) {
-          return {
-            ...e,
-            answer: e.answer + eventStreamText,
-            cards: cardList,
-          };
-        } else return e;
-      });
-    };
-
-    return (
-      <TextAreaContainer>
-        <TextArea
-          value={text}
-          placeholder={"Message Stockelper..."}
-          onChange={onChangeTextAreaHandler}
-          onKeyDown={onEnterHandler}
-        />
-        <IconContainer onClick={onSend}>
-          <SendIcon
-            width={"1.25rem"}
-            height={"1.25rem"}
-            color={"var(--theme-color-2)"}
-          />
-        </IconContainer>
-      </TextAreaContainer>
-    );
   };
 
-  export default ChatInput;
+  const addRequestData = (
+    list: ChattingTypes[],
+    requestText: string,
+    roomId: string,
+  ) => {
+    return [
+      ...list,
+      {
+        id: uuidv4(),
+        room_id: roomId,
+        chat_idx: uuidv4(),
+        question: requestText,
+        answer: "",
+        created_at: new Date().toDateString(),
+        updated_at: new Date().toDateString(),
+        deleted_at: null,
+      },
+    ] as ChattingTypes[];
+  };
 
-  const TextAreaContainer = styled.div`
+  const addResponseData = (
+    list: ChattingTypes[],
+    eventStreamText: string,
+    messageId: string,
+  ) => {
+    return list.map((e) => {
+      if (e.id.toString() === messageId) {
+        return {
+          ...e,
+          answer: e.answer + eventStreamText,
+          cards: cardList,
+        };
+      } else return e;
+    });
+  };
+
+  return (
+    <TextAreaContainer>
+      <TextArea
+        value={text}
+        placeholder={"Message Stockelper..."}
+        onChange={onChangeTextAreaHandler}
+        onKeyDown={onEnterHandler}
+      />
+      <IconContainer onClick={onSend}>
+        <SendIcon
+          width={"1.25rem"}
+          height={"1.25rem"}
+          color={"var(--theme-color-2)"}
+        />
+      </IconContainer>
+    </TextAreaContainer>
+  );
+};
+
+export default ChatInput;
+
+const TextAreaContainer = styled.div`
   width: 100%;
   display: flex;
   position: relative;
 `;
 
-  const TextArea = styled.textarea`
+const TextArea = styled.textarea`
   width: 100%;
   height: 2.8rem;
   padding: 0.75rem;
@@ -210,7 +211,7 @@ const ChatInput = () => {
   }
 `;
 
-  const IconContainer = styled.div`
+const IconContainer = styled.div`
   position: absolute;
   right: 1rem;
   top: 0.75rem;
