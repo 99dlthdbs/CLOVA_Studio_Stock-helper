@@ -1,7 +1,13 @@
 import { CardType, ChattingTypes } from "@/@types/ChattingTypes";
 import axios from "axios";
 
-export const formatContent = (callSign: string, analysis: string, targetFee: string, endFee: string) => `
+export const formatContent = (
+  code: string,
+  callSign: string,
+  analysis: string,
+  targetFee: string,
+  endFee: string) => `
+종목코드 : ${code}
 분석 : ${analysis}
 매수 신호 : ${callSign}
 목표가 : ${targetFee} 원
@@ -27,7 +33,7 @@ const parsing_cards = (data: string) => {
 
       cardList.push({
         title: `[${finance}] ${date} ${company} 분석 리포트`,
-        content: formatContent(callSign, analysis, targetFee, endFee),
+        content: formatContent(code, callSign, analysis, targetFee, endFee),
         url: "#"
       });
     }

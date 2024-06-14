@@ -110,7 +110,7 @@ const ChatInput = () => {
 
         cardList.push({
           title: `[${finance}] ${date} ${company} 분석 리포트`,
-          content: formatContent(callSign, analysis, targetFee, endFee),
+          content: formatContent(code, callSign, analysis, targetFee, endFee),
           url: "#"
         });
       } else {
