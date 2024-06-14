@@ -5,7 +5,7 @@ import ChatInput from "@/components/ChatRoom/ChatInput";
 import Message from "@/components/ChatRoom/Message";
 import styled from "@emotion/styled";
 import { useAtom } from "jotai";
-import { Fragment, useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
 const Chat = () => {
@@ -48,7 +48,7 @@ const Chat = () => {
           {chattingList.length !== 0 ? (
             chattingList.map((e) => {
               return (
-                <Fragment key={e.id}>
+                <div key={e.id}>
                   <Message role={"user"} content={e.question} />
                   <Message role={"assistant"} content={e.answer} />
                   <NewsCardDiv>
@@ -63,7 +63,7 @@ const Chat = () => {
                         </NewsCard>
                       ))}
                   </NewsCardDiv>
-                </Fragment>
+                </div>
               );
             })
           ) : (
@@ -110,11 +110,11 @@ const NewsCardContent = styled.div`
 
 const NewsCardDiv = styled.div`
   display: flex;
-  overflow-x: auto;
-  height: fit-content;
+  overflow-x: scroll;
+  width: 100%;
   gap: 1rem;
   
-  scrollbar-width: none;
+  // scrollbar-width: none;
 `;
 
 const ChatContainer = styled.div`

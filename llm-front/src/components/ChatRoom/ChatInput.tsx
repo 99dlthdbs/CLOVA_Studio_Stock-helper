@@ -154,7 +154,7 @@ const ChatInput = () => {
       if (e.id.toString() === messageId) {
         return {
           ...e,
-          answer: e.answer + eventStreamText,
+          answer: e.answer + "\n" + eventStreamText,
           cards: cardList,
         };
       } else return e;

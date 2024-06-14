@@ -240,7 +240,8 @@ async def websocket_endpoint(
                             continue
 
                         else:
-                            infer_text += parsing_text
+                            infer_text += parsing_text + "\n"
+                            print(infer_text)
                             await websocket.send_text(parsing_text)
                             await asyncio.sleep(0.01)
                             parsing_text = ""
@@ -267,3 +268,5 @@ async def websocket_endpoint(
             and websocket.application_state == WebSocketState.CONNECTED
         ):
             await websocket.close()
+    except Exception as e:
+        print(e)

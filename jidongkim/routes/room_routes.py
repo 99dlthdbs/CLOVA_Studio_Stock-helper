@@ -23,6 +23,7 @@ def read_rooms(
         db.query(ChattingRoomModel)
         .filter(ChattingRoomModel.owner_id == user.id)
         .filter(ChattingRoomModel.deleted_at.is_(None))
+        .order_by(ChattingRoomModel.id.desc())
         .offset(skip)
         .limit(limit)
         .all()
