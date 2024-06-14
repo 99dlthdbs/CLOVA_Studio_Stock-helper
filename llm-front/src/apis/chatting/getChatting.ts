@@ -1,6 +1,13 @@
 import { CardType, ChattingTypes } from "@/@types/ChattingTypes";
 import axios from "axios";
 
+export const formatContent = (callSign: string, analysis: string, targetFee: string, endFee: string) => `
+분석 : ${analysis}
+신호 : ${callSign}
+목표가 : ${targetFee}
+종가 : ${endFee}
+`
+
 const parsing_cards = (data: string) => {
   const cardList: CardType[] = [];
   if (!data) return cardList;
@@ -8,8 +15,22 @@ const parsing_cards = (data: string) => {
   const splitted = data.split("%T%T%");
 
   splitted.forEach((e) => {
-    const [title, content, url] = e.split("####");
-    cardList.push({ title, content, url });
+    if (e.startsWith("#$#$#")) {
+      const [title, content, url] = e.replaceAll("#$#$#", "")
+        .trim()
+        .split("####");
+      cardList.push({ title, content, url });
+    } else if (e.startsWith("!@!@!")) {
+      const [date, company, code, analysis, callSign, finance, targetFee, endFee] = e.replaceAll("!@!@!", "")
+        .trim()
+        .split("####");
+
+      cardList.push({
+        title: `[${finance}] ${date} ${company} 리포트`,
+        content: formatContent(callSign, analysis, targetFee, endFee),
+        url: "#"
+      });
+    }
   });
 
   return cardList;

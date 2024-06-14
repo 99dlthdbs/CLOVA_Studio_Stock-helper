@@ -86,7 +86,7 @@ export default Chat;
 const NewsCard = styled.div`
   flex-shrink: 0;
   width: fit-content;
-  max-width: 300px;
+  max-width: 500px;
   background: rgba(255, 255, 255, 0.1);
   padding: 1rem;
   border-radius: 0.5rem;
@@ -106,6 +106,7 @@ const NewsCardTitle = styled.div`
 const NewsCardContent = styled.div`
   font-size: 0.75rem;
   font-weight: 400;
+  white-space: pre-wrap;
 `;
 
 const NewsCardDiv = styled.div`

@@ -7,7 +7,7 @@ from db.models.ChattingModels import ChattingRoomModel, ChattingModel
 from db.models import AuthModels
 from schemas.auth_schemas import ChatToken
 from routes.auth_routes import create_access_token, get_current_user
-from schemas.chatting_schemas import ChattingDisplay
+from schemas.chatting_schemas import ChattingDisplay, ChattingResponse
 
 router = APIRouter(prefix="/api/chatting", tags=["chatting"])
 
@@ -41,7 +41,7 @@ def get_chat_token(
     return token
 
 
-@router.get("/{room_id}", response_model=list[ChattingDisplay])
+@router.get("/{room_id}", response_model=list[ChattingResponse])
 def get_chatting(
     room_id: int, db: Session = Depends(get_db_session), user=Depends(get_current_user)
 ):
@@ -60,7 +60,7 @@ def get_chatting(
     return chat_list
 
 
-@router.get("/{room_id}/latest", response_model=ChattingDisplay)
+@router.get("/{room_id}/latest", response_model=ChattingResponse)
 def get_lastest_chatting(
     room_id: int, db: Session = Depends(get_db_session), user=Depends(get_current_user)
 ):

@@ -202,7 +202,7 @@ async def websocket_endpoint(
                                     "#$#$#" + card_data_str + "#$#$#"
                                 )
                                 await asyncio.sleep(0.01)
-                                card_data.append(card_data_str)
+                                card_data.append("#$#$#" + card_data_str + "#$#$#")
                                 parsing_text = after
                             else:
                                 toggle_read_card_data = True
@@ -221,7 +221,7 @@ async def websocket_endpoint(
                                     "!@!@!" + card_data_str + "!@!@!"
                                 )
                                 await asyncio.sleep(0.01)
-                                card_data.append(card_data_str)
+                                card_data.append("!@!@!" + card_data_str + "!@!@!")
                                 parsing_text = after
                             else:
                                 toggle_read_card_data = True

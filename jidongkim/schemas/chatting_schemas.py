@@ -17,3 +17,13 @@ class ChattingDisplay(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ChattingResponse(BaseModel):
+    id: int
+    room_id: int
+    chat_idx: int
+    question: str
+    answer: str
+    card_data: Optional[str]
+    created_at: datetime

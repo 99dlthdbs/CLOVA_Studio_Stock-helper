@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { getChatToken } from "@/apis/chatting/getChatToken";
+import { formatContent } from "@/apis/chatting/getChatting";
 import { createRoom } from "@/apis/room/createRoom";
 import { chattingListAtoms } from "@/atom/chattingAtoms";
 import { useAtom } from "jotai";
@@ -102,13 +103,16 @@ const ChatInput = () => {
         const [title, content, url] = splitted;
 
         cardList.push({ title, content, url });
-      }
-      else if (data.startsWith("!@!@!")) {
+      } else if (data.startsWith("!@!@!")) {
         const res = data.replaceAll("!@!@!", "");
         const splitted = res.split("####");
         const [date, company, code, analysis, callSign, finance, targetFee, endFee] = splitted;
 
-        cardList.push({ title: "", content: "", url: "#" });
+        cardList.push({
+          title: `[${finance}] ${date} ${company} 리포트`,
+          content: formatContent(callSign, analysis, targetFee, endFee),
+          url: "#"
+        });
       } else {
         temp = addResponseData(
           temp,
