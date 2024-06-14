@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   app:
+    container_name: chromatices/stockelper:1.2
     build: .
     ports:
       - "30001:8000"
