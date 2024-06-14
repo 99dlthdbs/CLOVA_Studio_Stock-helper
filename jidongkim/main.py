@@ -262,5 +262,8 @@ async def websocket_endpoint(
             except Exception as e:
                 print(e)
     except WebSocketDisconnect:
-        print("DISCONNECTED")
+        print("ERROR DISCONNECTED")
+        websocket.close()
+    finally:
+        print("CLOSED")
         websocket.close()
