@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 DATABASE_URL = "sqlite:///./db-data/stock.db"
 
 engine = create_engine(
-    DATABASE_URL, echo=True, connect_args={"check_same_thread": False}
+    DATABASE_URL, echo=False, connect_args={"check_same_thread": False}
 )
 
 SessionLocal = scoped_session(

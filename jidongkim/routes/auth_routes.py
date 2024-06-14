@@ -157,7 +157,6 @@ def logout(response: Response):
 @router.get("/isLogged")
 def is_logged(request: Request):
     access_token = request.cookies.get("access_token")
-    print(request.cookies)
     if not access_token:
         return {"isLogged": False}
     return {"isLogged": True}

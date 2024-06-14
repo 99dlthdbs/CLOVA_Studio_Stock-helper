@@ -57,8 +57,6 @@ def get_chatting(
 
     chat_list = [chat for chat in room.chats if chat.deleted_at is None]
 
-    print(chat_list)
-
     return chat_list
 
 
