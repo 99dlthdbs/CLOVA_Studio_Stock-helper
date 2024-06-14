@@ -3,9 +3,9 @@ import axios from "axios";
 
 export const formatContent = (callSign: string, analysis: string, targetFee: string, endFee: string) => `
 분석 : ${analysis}
-신호 : ${callSign}
-목표가 : ${targetFee}
-종가 : ${endFee}
+매수 신호 : ${callSign}
+목표가 : ${targetFee} 원
+종가 : ${endFee} 원 
 `
 
 const parsing_cards = (data: string) => {
@@ -26,7 +26,7 @@ const parsing_cards = (data: string) => {
         .split("####");
 
       cardList.push({
-        title: `[${finance}] ${date} ${company} 리포트`,
+        title: `[${finance}] ${date} ${company} 분석 리포트`,
         content: formatContent(callSign, analysis, targetFee, endFee),
         url: "#"
       });

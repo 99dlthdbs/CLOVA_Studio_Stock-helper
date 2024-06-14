@@ -109,7 +109,7 @@ const ChatInput = () => {
         const [date, company, code, analysis, callSign, finance, targetFee, endFee] = splitted;
 
         cardList.push({
-          title: `[${finance}] ${date} ${company} 리포트`,
+          title: `[${finance}] ${date} ${company} 분석 리포트`,
           content: formatContent(callSign, analysis, targetFee, endFee),
           url: "#"
         });
