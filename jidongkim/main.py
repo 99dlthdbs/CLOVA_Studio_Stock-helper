@@ -259,14 +259,18 @@ async def websocket_endpoint(
                     rag_data=rag_data,
                 )
 
-            print("CLODE WEBSOCKET")
+            print("CLOSE WEBSOCKET")
             await websocket.close()
     except WebSocketDisconnect:
         print("ERROR DISCONNECTED")
+        if websocket.application_state == WebSocketState.CONNECTED:
+            await websocket.send_text("에러가 발생했습니다.")
         if (
             websocket.client_state == WebSocketState.CONNECTED
             and websocket.application_state == WebSocketState.CONNECTED
         ):
             await websocket.close()
     except Exception as e:
+        if websocket.application_state == WebSocketState.CONNECTED:
+            await websocket.send_text("에러가 발생했습니다.")
         print(e)
