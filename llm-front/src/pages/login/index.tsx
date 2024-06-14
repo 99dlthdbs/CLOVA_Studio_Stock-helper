@@ -14,10 +14,14 @@ const Login = () => {
   });
 
   const onClickLogInHandler = useCallback(async () => {
-    const result = await login(userInfo);
+    try {
+      const result = await login(userInfo);
 
-    if (result.email) {
-      navigate("/chat");
+      if (result.email) {
+        navigate("/chat");
+      }
+    } catch (err) {
+      alert("로그인에 실패했습니다.");
     }
   }, [navigate, userInfo]);
 
@@ -50,6 +54,16 @@ const Login = () => {
     [],
   );
 
+  const onEnterHandler = useCallback(
+    async (event: React.KeyboardEvent<HTMLInputElement>) => {
+      const { keyCode } = event;
+      if (keyCode === 13) {
+        await onClickLogInHandler();
+      }
+    },
+    [userInfo],
+  );
+
   return (
     <LogInContainer>
       <TitleText>LOGIN</TitleText>
@@ -59,6 +73,7 @@ const Login = () => {
           type={"string"}
           value={userInfo.email}
           onChange={onChangeValueHandler}
+          onEnter={onEnterHandler}
           icon={"user"}
         />
         <Input
@@ -66,6 +81,7 @@ const Login = () => {
           type={"password"}
           value={userInfo.password}
           onChange={onChangeValueHandler}
+          onEnter={onEnterHandler}
           icon={"password"}
         />
       </InputContainer>

@@ -14,9 +14,17 @@ interface InputProps {
     event: React.ChangeEvent<HTMLInputElement>,
     currKey: string,
   ) => void;
+  onEnter?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 }
 
-const Input = ({ placeholder, value, onChange, type, icon }: InputProps) => {
+const Input = ({
+  placeholder,
+  value,
+  onChange,
+  type,
+  icon,
+  onEnter,
+}: InputProps) => {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [isFocus, setIsFocus] = useState<boolean>(false);
 
@@ -36,11 +44,12 @@ const Input = ({ placeholder, value, onChange, type, icon }: InputProps) => {
     <InputContainer>
       <InputElement
         placeholder={placeholder}
-        type={"password" ? (isVisible ? "string" : type) : type}
+        type={type === "password" ? (isVisible ? "string" : type) : type}
         value={value}
         onFocus={onFocusHandler}
         onBlur={onBlurHandler}
         onChange={(event) => onChange(event, placeholder)}
+        onKeyDown={onEnter}
         icon={!!icon}
         password={type === "password"}
       />

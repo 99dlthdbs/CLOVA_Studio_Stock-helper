@@ -58,6 +58,16 @@ const Signup = () => {
     [],
   );
 
+  const onEnterHandler = useCallback(
+    async (event: React.KeyboardEvent<HTMLInputElement>) => {
+      const { keyCode } = event;
+      if (keyCode === 13) {
+        await onClickSignupHandler();
+      }
+    },
+    [userInfo],
+  );
+
   return (
     <SignupContainer>
       <TitleText>Signup</TitleText>
@@ -67,12 +77,14 @@ const Signup = () => {
           type={"string"}
           value={userInfo.nickname}
           onChange={onChangeValueHandler}
+          onEnter={onEnterHandler}
         />
         <Input
           placeholder={"email"}
           type={"string"}
           value={userInfo.email}
           onChange={onChangeValueHandler}
+          onEnter={onEnterHandler}
           icon={"user"}
         />
         <Input
@@ -80,6 +92,7 @@ const Signup = () => {
           type={"password"}
           value={userInfo.password}
           onChange={onChangeValueHandler}
+          onEnter={onEnterHandler}
           icon={"password"}
         />
       </InputContainer>
