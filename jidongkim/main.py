@@ -210,6 +210,25 @@ async def websocket_endpoint(
                                 parsing_text = after
                             continue
 
+                        elif "!@!@!" in parsing_text:
+                            pos = parsing_text.find("!@!@!")
+                            before = parsing_text[:pos]
+                            after = parsing_text[pos + 5 :]
+                            if toggle_read_card_data:
+                                toggle_read_card_data = False
+                                card_data_str += before
+                                await websocket.send_text(
+                                    "!@!@!" + card_data_str + "!@!@!"
+                                )
+                                await asyncio.sleep(0.01)
+                                card_data.append(card_data_str)
+                                parsing_text = after
+                            else:
+                                toggle_read_card_data = True
+                                card_data_str = ""
+                                parsing_text = after
+                            continue
+
                         elif toggle_read_rag:
                             rag_data += parsing_text
                             parsing_text = ""
