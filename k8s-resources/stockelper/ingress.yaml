@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-stockelper
+  namespace: stockelper
+  annotations:
+    alb.ingress.kubernetes.io/description: 'Stockelper Service Ingress'
+    alb.ingress.kubernetes.io/load-balancer-name: 'stockelper-app'
+    alb.ingress.kubernetes.io/ssl-certificate-no: "00000" # insert ncloud ssl certificate number
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/enable-sticky-session: "true"
+spec:
+  ingressClassName: alb
+  defaultBackend:
+    service:
+      name: stockelper-app-service
+      port:
+        number: 30300
