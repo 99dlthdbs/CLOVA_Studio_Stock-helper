@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: stockelper-app
+  namespace: stockelper
+  labels:                   # label 추가
+    app: stockelper-app
+spec:
+  containers:
+  - name: stockelper-app
+    image: chromatices/stockelper:1.25
+    ports:
+    - containerPort: 8000
+    volumeMounts: 
+    - mountPath: /code/db-data/
+      name: stockelper-nfs-volume
+  volumes: 
+  - name: stockelper-nfs-volume
+    nfs: 
+      server: 10.0.1.8
+      path: /data/home/nfsroot/stockelper
