@@ -4,8 +4,8 @@ python 002-004_news-crawler.py \
     --password financial \
     --database financial \
     --query 삼성전자 \
-    --ds '2024.06.12' \
-    --de '2024.06.12'
+    --ds '2024.06.19' \
+    --de '2024.06.19'
 
 # https://comp.fnguide.com/SVO2/ASP/SVD_UJRank.asp?pGB=1&gicode=A005930&cID=&MenuYn=Y&ReportGB=&NewMenuID=301&stkGb=701
 
