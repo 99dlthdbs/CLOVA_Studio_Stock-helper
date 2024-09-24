@@ -194,9 +194,10 @@ if __name__ == "__main__":
     args = parse_args()
     start = time.time()
 
-    jongmok = pd.read_csv('./UpjongRank_Excel.csv')
+    jongmok = pd.read_csv('./set.csv')
     jongmok_list = jongmok['종목명']
     for j in jongmok_list:
         args.query = j
         main(args)
-    print("Execution time: ", time.time() - start)
+
+    print("Execution time: ", time.time() - start_time)

@@ -37,8 +37,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 llm_server_url = os.environ.get("LLM_SERVER")
 llm_server_port = os.environ.get("LLM_SERVER_PORT")
 
-print(llm_server_url, llm_server_port)
-
 origins = [
     "http://localhost:5173",
     "http://localhost:5174",
@@ -70,8 +68,10 @@ async def web():
 async def websocket_endpoint(
     websocket: WebSocket, db: Session = Depends(get_db_session)
 ):
+    print("=====================INFER CONNECT")
     try:
         await websocket.accept()
+        print("=========================WEBSOCKET ACCEPT")
         while True and websocket.client_state == WebSocketState.CONNECTED:
             if (
                 websocket.client_state != WebSocketState.CONNECTED
@@ -83,6 +83,7 @@ async def websocket_endpoint(
 
             # msg, token, room_id
             data = json.loads(data)
+            print(data)
 
             # email, room_id, exp
             decoded_token = decode_access_token(data["token"])
@@ -148,10 +149,13 @@ async def websocket_endpoint(
                 }
             )
 
+            print(llm_server_url)
+            print(llm_server_port)
+
             r = requests.Session()
 
             stream = r.post(
-                f"{llm_server_url}:{llm_server_port}/stock/chat",
+                    f"{llm_server_url}:{llm_server_port}/stock/chat",
                 json=msgs,
                 stream=True,
             )
@@ -271,6 +275,7 @@ async def websocket_endpoint(
         ):
             await websocket.close()
     except Exception as e:
+        print("ERROR ANY")
         if websocket.application_state == WebSocketState.CONNECTED:
             await websocket.send_text("에러가 발생했습니다.")
         print(e)

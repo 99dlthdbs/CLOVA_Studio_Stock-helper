@@ -8,8 +8,14 @@ services:
       - "30001:8000"
     volumes:
       - db-data:/code/db-data
+    networks:
+      - server_default
     environment:
       - PIPENV_VENV_IN_PROJECT=1
 
 volumes:
   db-data:
+
+networks:
+  server_default:
+    external: true
