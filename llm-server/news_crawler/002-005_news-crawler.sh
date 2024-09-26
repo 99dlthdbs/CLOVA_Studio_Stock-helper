@@ -3,9 +3,9 @@ python 002-005_news-crawler.py \
     --username root \
     --password Telepix123#! \
     --database financial \
-    --query KB금융 \
-    --ds '2024.09.23' \
-    --de '2024.09.23'
+    --query LG화학 \
+    --ds '2024.09.24' \
+    --de '2024.09.24'
 
 # https://comp.fnguide.com/SVO2/ASP/SVD_UJRank.asp?pGB=1&gicode=A005930&cID=&MenuYn=Y&ReportGB=&NewMenuID=301&stkGb=701
 

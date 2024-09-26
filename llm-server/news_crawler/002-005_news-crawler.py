@@ -7,6 +7,7 @@ import argparse
 import time
 import random
 import pandas as pd
+from fake_useragent import UserAgent
 
 
 def parse_args():
@@ -47,7 +48,7 @@ def fetch_news_data(params, headers, url, db):
             
         if response.status_code != 200:
             print("Connection Issue")
-            time.sleep(float(random.uniform(0.3, 0.4)))
+            time.sleep(float(random.uniform(0.6, 1.0)))
             continue
 
         soup = bs(response.content, 'html.parser')
@@ -56,9 +57,9 @@ def fetch_news_data(params, headers, url, db):
 
         if not naver_news_links:
             params['start'] = str(int(params['start']) + 10)
-            print("No NAVER NEWS Platforms")
+            print("No NAVER NEWS Platforms", no_news_flag)
+            time.sleep(float(random.uniform(0.6, 1.0)))
             no_news_flag += 1
-            time.sleep(float(random.uniform(0.3, 0.4)))
             if no_news_flag > 2:
                 break
             else:
@@ -81,7 +82,7 @@ def fetch_news_data(params, headers, url, db):
 
             if article_res.status_code != 200:
                 print("Connection Issue")
-                time.sleep(float(random.uniform(0.3, 0.4)))
+                time.sleep(float(random.uniform(0.6, 1.0)))
                 continue
 
             article_soup = bs(article_res.content, 'html.parser')
@@ -90,7 +91,7 @@ def fetch_news_data(params, headers, url, db):
 
             if params['query'] not in title:
                 print("Query is not in the Title")
-                time.sleep(float(random.uniform(0.3, 0.4)))
+                time.sleep(float(random.uniform(0.6, 1.0)))
                 continue
 
             print("==========================================")
@@ -99,7 +100,11 @@ def fetch_news_data(params, headers, url, db):
             press_select = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_top._LAZY_LOADING_WRAP > a > img.media_end_head_top_logo_img.light_type._LAZY_LOADING._LAZY_LOADING_INIT_HIDE')
             press = press_select['title'] if 'title' in press_select.attrs else 'Title attribute not found'
             print("link: ", link)
-            origin = article_soup.find("a", string='기사원문')['href']
+            try:
+                origin = article_soup.find("a", string='기사원문')['href']
+            except TypeError:
+                print("There isn't original news url")
+                continue
             print("origin: ", origin)
             print("press: ", press)
             date = article_soup.select_one('#ct > div.media_end_head.go_trans > div.media_end_head_info.nv_notrans > div.media_end_head_info_datestamp > div:nth-child(1) > span')['data-date-time']
@@ -130,7 +135,7 @@ def fetch_news_data(params, headers, url, db):
                 'origin': origin
             }
             batch.append(tmp)
-            time.sleep(float(random.uniform(0.3, 0.4)))
+            time.sleep(float(random.uniform(0.6, 1.0)))
 
         if batch:
             urls = [news['url'] for news in batch]
@@ -143,19 +148,19 @@ def fetch_news_data(params, headers, url, db):
                 db.news.insert_many(new_batch)
                 duplicate_flag = 0
             else:
-                print("All batch data is Duplicated")
+                print("All batch data is Duplicated", duplicate_flag)
                 duplicate_flag += 1
 
         print("start: ", params['start'])
         params['start'] = str(int(params['start']) + 10)
-        time.sleep(float(random.uniform(0.3, 0.4)))
+        time.sleep(float(random.uniform(0.6, 1.0)))
 
 def main(args):
     start_date = datetime.strptime(args.ds, "%Y.%m.%d")
     end_date = datetime.strptime(args.de, "%Y.%m.%d") + timedelta(days=1)
-
+    ua = UserAgent()
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        "User-Agent": ua.random
     }
 
     if args.port == '':
@@ -179,7 +184,7 @@ def main(args):
             'sort': '1',
             'start': '1',
             'where': 'news_tab_api',
-            'nso': f'so:dd,p:1h,a:all',
+            'nso': f'so:dd,p:from{current_date.strftime("%Y%m%d")}to{current_date.strftime("%Y%m%d")}',
             'ds': current_date.strftime("%Y.%m.%d"),
             'de': current_date.strftime("%Y.%m.%d")
         }
@@ -192,7 +197,7 @@ def main(args):
 
 if __name__ == "__main__":
     args = parse_args()
-    start = time.time()
+    start_time = time.time()
 
     jongmok = pd.read_csv('./set.csv')
     jongmok_list = jongmok['종목명']
